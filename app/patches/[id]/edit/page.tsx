@@ -73,7 +73,7 @@ export default function EditPatchPage() {
         <span className="text-xs font-mono text-zinc-500">Edit Patch</span>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="px-6 py-8">
         {error && (
           <div className="mb-6 text-red-400 text-sm font-mono border border-red-900/50 rounded px-4 py-2">
             {error}

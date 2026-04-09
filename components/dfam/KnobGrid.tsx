@@ -91,7 +91,8 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
       <div>
         <ZoneLabel>Sound Engine</ZoneLabel>
 
-        <div className="flex gap-3 flex-wrap">
+        {/* No wrap — scroll horizontally on small screens */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
 
           {/* Block 1 — Pitch + FM + Sync: 2×4 grid */}
           <BlockWell className="flex-none">
@@ -102,7 +103,7 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
             </div>
           </BlockWell>
 
-          {/* Block 2 — Wave + Mixer */}
+          {/* Block 2 — Wave + Mixer: VCO1 row / VCO2 row / noise centered */}
           <BlockWell className="flex-none">
             <BlockLabel>Wave · Mixer</BlockLabel>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -116,19 +117,28 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
             </div>
           </BlockWell>
 
-          {/* Block 3 — Filter: column of 5 */}
+          {/* Block 3 — Filter: switch at top, 2×2 knob grid below */}
           <BlockWell className="flex-none">
             <BlockLabel>Filter</BlockLabel>
-            <div className="flex flex-col gap-3 items-center">
-              {filterKnobs.map(renderControl)}
+            <div className="flex justify-center mb-3">
+              {renderControl(knobById['vcf_mode'])}
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {renderControl(knobById['vcf_cutoff'])}
+              {renderControl(knobById['vcf_resonance'])}
+              {renderControl(knobById['vcf_decay'])}
+              {renderControl(knobById['vcf_eg_amount'])}
             </div>
           </BlockWell>
 
-          {/* Block 4 — Mod + VCA: column of 4 */}
+          {/* Block 4 — Mod + VCA: switch + knobs in 2×2 grid */}
           <BlockWell className="flex-none">
             <BlockLabel>Mod · VCA</BlockLabel>
-            <div className="flex flex-col gap-3 items-center">
-              {modVca.map(renderControl)}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {renderControl(knobById['vca_eg'])}
+              {renderControl(knobById['volume'])}
+              {renderControl(knobById['noise_vcf_mod'])}
+              {renderControl(knobById['vca_decay'])}
             </div>
           </BlockWell>
 

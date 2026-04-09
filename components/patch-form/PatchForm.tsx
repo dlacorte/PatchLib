@@ -34,8 +34,8 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Metadata */}
-      <section className="space-y-4">
+      {/* Metadata — constrained width */}
+      <section className="max-w-xl space-y-4">
         <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800">
           Patch Info
         </div>
@@ -84,8 +84,8 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
         </div>
       </section>
 
-      {/* Notes */}
-      <section className="space-y-4">
+      {/* Notes — constrained width */}
+      <section className="max-w-xl space-y-4">
         <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800">
           Notes
         </div>
