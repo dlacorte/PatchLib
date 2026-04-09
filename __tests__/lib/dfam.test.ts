@@ -30,16 +30,29 @@ describe('DFAM_KNOBS', () => {
 })
 
 describe('DFAM_JACKS', () => {
-  it('has 8 outputs', () => {
+  it('has 8 CV outputs', () => {
     expect(DFAM_JACKS.outputs).toHaveLength(8)
   })
 
-  it('has 12 inputs', () => {
+  it('has 12 CV inputs', () => {
     expect(DFAM_JACKS.inputs).toHaveLength(12)
   })
 
+  it('has 3 audio outputs', () => {
+    expect(DFAM_JACKS.audioOutputs).toHaveLength(3)
+  })
+
+  it('has 1 audio input', () => {
+    expect(DFAM_JACKS.audioInputs).toHaveLength(1)
+  })
+
   it('all jacks have id, label, x, y', () => {
-    const allJacks = [...DFAM_JACKS.outputs, ...DFAM_JACKS.inputs]
+    const allJacks = [
+      ...DFAM_JACKS.outputs,
+      ...DFAM_JACKS.inputs,
+      ...DFAM_JACKS.audioOutputs,
+      ...DFAM_JACKS.audioInputs,
+    ]
     allJacks.forEach(j => {
       expect(j.id).toBeTruthy()
       expect(j.label).toBeTruthy()
@@ -49,7 +62,12 @@ describe('DFAM_JACKS', () => {
   })
 
   it('has no duplicate jack ids', () => {
-    const allJacks = [...DFAM_JACKS.outputs, ...DFAM_JACKS.inputs]
+    const allJacks = [
+      ...DFAM_JACKS.outputs,
+      ...DFAM_JACKS.inputs,
+      ...DFAM_JACKS.audioOutputs,
+      ...DFAM_JACKS.audioInputs,
+    ]
     const ids = allJacks.map(j => j.id)
     expect(new Set(ids).size).toBe(ids.length)
   })

@@ -49,7 +49,10 @@ export const DFAM_KNOBS: KnobDef[] = [
 
 export const SEQUENCER_STEPS = 8
 
-// SVG viewBox: 0 0 700 110 — Outputs (8) at y=28, Inputs (12) at y=82
+// SVG viewBox: 0 0 700 160
+//   CV Outputs (8)    at y=28
+//   CV Inputs  (12)   at y=82
+//   Audio I/O  (4)    at y=136
 export const DFAM_JACKS = {
   outputs: [
     { id: 'vco1_out',     label: 'VCO 1',   x: 40,  y: 28 },
@@ -74,6 +77,15 @@ export const DFAM_JACKS = {
     { id: 'vcf_decay_in',   label: 'VCF DCY', x: 552, y: 82 },
     { id: 'vca_decay_in',   label: 'VCA DCY', x: 610, y: 82 },
     { id: 'adv_clock',      label: 'ADV/CLK', x: 668, y: 82 },
+  ] as JackDef[],
+  // Audio I/O — audio outputs act as sources, ext_audio_in as destination
+  audioOutputs: [
+    { id: 'audio_out',      label: 'AUDIO OUT', x: 160, y: 136 },
+    { id: 'mix_out',        label: 'MIX OUT',   x: 310, y: 136 },
+    { id: 'headphones_out', label: 'PHONES',    x: 460, y: 136 },
+  ] as JackDef[],
+  audioInputs: [
+    { id: 'ext_audio_in',   label: 'EXT IN',    x: 560, y: 136 },
   ] as JackDef[],
 }
 
