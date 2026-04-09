@@ -158,72 +158,65 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
           <BlockWell>
             <div className="flex gap-6 items-start">
 
-              {/* Tempo + Transport */}
-              <div className="flex flex-col items-center gap-3 pt-5 flex-none">
-                <Knob
-                  id={tempoKnob.id}
-                  label={tempoKnob.label}
-                  value={values[tempoKnob.id] ?? tempoKnob.defaultValue}
-                  onChange={handleChange}
-                  min={tempoKnob.min}
-                  max={tempoKnob.max}
-                />
-                <div className="flex flex-col gap-1.5 w-full">
-                  <button
-                    type="button"
-                    onPointerDown={() => setTriggerActive(true)}
-                    onPointerUp={() => setTriggerActive(false)}
-                    onPointerLeave={() => setTriggerActive(false)}
-                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
-                      triggerActive
-                        ? 'bg-orange-500 text-black border-orange-500'
-                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
-                    }`}
-                  >
-                    TRIGGER
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRunStop(r => !r)}
-                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
-                      runStop
-                        ? 'bg-orange-500 text-black border-orange-500'
-                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
-                    }`}
-                  >
-                    {runStop ? 'STOP' : 'RUN'}
-                  </button>
-                  <button
-                    type="button"
-                    onPointerDown={() => setAdvanceActive(true)}
-                    onPointerUp={() => setAdvanceActive(false)}
-                    onPointerLeave={() => setAdvanceActive(false)}
-                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
-                      advanceActive
-                        ? 'bg-orange-500 text-black border-orange-500'
-                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
-                    }`}
-                  >
-                    ADVANCE
-                  </button>
+              {/* Transport (top) + Tempo (bottom) — matches hardware order */}
+              <div className="flex flex-col gap-1.5 flex-none">
+                <button
+                  type="button"
+                  onPointerDown={() => setTriggerActive(true)}
+                  onPointerUp={() => setTriggerActive(false)}
+                  onPointerLeave={() => setTriggerActive(false)}
+                  className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                    triggerActive
+                      ? 'bg-orange-500 text-black border-orange-500'
+                      : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                  }`}
+                >
+                  TRIGGER
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRunStop(r => !r)}
+                  className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                    runStop
+                      ? 'bg-orange-500 text-black border-orange-500'
+                      : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                  }`}
+                >
+                  {runStop ? 'STOP' : 'RUN'}
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={() => setAdvanceActive(true)}
+                  onPointerUp={() => setAdvanceActive(false)}
+                  onPointerLeave={() => setAdvanceActive(false)}
+                  className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                    advanceActive
+                      ? 'bg-orange-500 text-black border-orange-500'
+                      : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                  }`}
+                >
+                  ADVANCE
+                </button>
+                <div className="mt-2 flex justify-center">
+                  <Knob
+                    id={tempoKnob.id}
+                    label={tempoKnob.label}
+                    value={values[tempoKnob.id] ?? tempoKnob.defaultValue}
+                    onChange={handleChange}
+                    min={tempoKnob.min}
+                    max={tempoKnob.max}
+                  />
                 </div>
               </div>
 
               {/* Divider */}
               <div className="w-px self-stretch bg-zinc-800/60 flex-none" />
 
-              {/* 8 step columns — Velocity (top) · Pitch (bottom) */}
+              {/* 8 step columns — Pitch (top) · Velocity (bottom) · Step LED */}
               <div className="grid grid-cols-8 gap-3 flex-1">
                 {Array.from({ length: SEQUENCER_STEPS }, (_, i) => i + 1).map(step => (
                   <div key={step} className="flex flex-col items-center gap-2">
                     <span className="text-[8px] text-zinc-700 font-mono">{step}</span>
-                    <Knob
-                      id={`seq_${step}_vel`}
-                      label="VEL"
-                      value={values[`seq_${step}_vel`] ?? 5}
-                      onChange={handleChange}
-                      size={36}
-                    />
                     <Knob
                       id={`seq_${step}_pitch`}
                       label="PCH"
@@ -231,6 +224,15 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
                       onChange={handleChange}
                       size={36}
                     />
+                    <Knob
+                      id={`seq_${step}_vel`}
+                      label="VEL"
+                      value={values[`seq_${step}_vel`] ?? 5}
+                      onChange={handleChange}
+                      size={36}
+                    />
+                    {/* Step LED indicator */}
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-800 border border-zinc-700/60" />
                   </div>
                 ))}
               </div>
