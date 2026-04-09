@@ -73,10 +73,8 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
     )
   }
 
-  const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
-  const filterKnobs = DFAM_KNOBS.filter(k => k.section === 'filter')
-  const modVca      = DFAM_KNOBS.filter(k => k.section === 'mod_vca')
-  const tempoKnob   = DFAM_KNOBS.find(k => k.id === 'tempo')!
+  const knobById  = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
+  const tempoKnob = DFAM_KNOBS.find(k => k.id === 'tempo')!
 
   // LEFT BLOCK — Pitch + FM + Sync: exact 2×4 grid
   // Row 1: VCO DECAY | SEQ PITCH MOD | VCO 1 EG AMT | VCO 1 FREQ
