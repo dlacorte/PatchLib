@@ -1,0 +1,163 @@
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+import { DFAM_JACKS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
+import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
+
+interface PageProps {
+  params: { id: string }
+}
+
+function colorHex(colorId: string): string {
+  return CABLE_COLORS.find(c => c.id === colorId)?.hex ?? '#e07b39'
+}
+
+export default async function PatchDetailPage({ params }: PageProps) {
+  const patch = await prisma.patch.findUnique({
+    where: { id: params.id },
+    include: { knobSettings: true, connections: true },
+  })
+
+  if (!patch) notFound()
+
+  const date = new Date(patch.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  })
+
+  const knobMap = Object.fromEntries(patch.knobSettings.map(k => [k.knobId, k.value]))
+  const displayKnobs = DFAM_KNOBS.filter(
+    def => knobMap[def.id] !== undefined && knobMap[def.id] !== def.defaultValue,
+  )
+
+  const allJacks = [...DFAM_JACKS.outputs, ...DFAM_JACKS.inputs]
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <nav className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
+        <Link href="/" className="text-orange-500 font-mono font-bold tracking-[4px] text-sm">
+          PATCHLIB
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/patches/${patch.id}/edit`}
+            className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1 hover:border-zinc-500 transition-colors"
+          >
+            Edit
+          </Link>
+          <DeletePatchButton patchId={patch.id} />
+        </div>
+      </nav>
+
+      <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-mono font-bold text-zinc-100 mb-1">{patch.name}</h1>
+          <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500">
+            <span className="border border-zinc-700 rounded px-1.5 py-0.5">{patch.device}</span>
+            <span>{date}</span>
+          </div>
+          {patch.description && (
+            <p className="mt-3 text-sm text-zinc-400 leading-relaxed">{patch.description}</p>
+          )}
+          {patch.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {patch.tags.map(tag => (
+                <span key={tag} className="text-[11px] font-mono px-2 py-0.5 rounded border border-zinc-700 text-zinc-400">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Knob settings */}
+        {displayKnobs.length > 0 && (
+          <section>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+              Knob Settings
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {displayKnobs.map(def => (
+                <div key={def.id} className="flex items-center justify-between bg-[#111] border border-zinc-800 rounded px-3 py-2">
+                  <span className="text-[11px] font-mono text-zinc-500">{def.label}</span>
+                  <span className="text-sm font-mono font-bold text-orange-400">
+                    {knobMap[def.id].toFixed(1)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Patch bay read-only */}
+        {patch.connections.length > 0 && (
+          <section>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+              Patch Bay · {patch.connections.length} cable{patch.connections.length !== 1 ? 's' : ''}
+            </div>
+            <div className="bg-[#0f0f0f] border border-zinc-800 rounded overflow-hidden mb-3">
+              <svg width="100%" viewBox="0 0 560 100" className="block" style={{ fontFamily: 'monospace' }}>
+                <text x="8" y="29" fill="#3a3a3a" fontSize="8">OUT</text>
+                <text x="8" y="79" fill="#3a3a3a" fontSize="8">IN</text>
+                {patch.connections.map((conn, i) => {
+                  const from = allJacks.find(j => j.id === conn.fromJack)
+                  const to = allJacks.find(j => j.id === conn.toJack)
+                  if (!from || !to) return null
+                  const midY = (from.y + to.y) / 2 + 10
+                  return (
+                    <path key={i} d={`M ${from.x},${from.y} C ${from.x},${midY} ${to.x},${midY} ${to.x},${to.y}`}
+                      stroke={colorHex(conn.color)} strokeWidth="2" fill="none" strokeOpacity="0.8" />
+                  )
+                })}
+                {DFAM_JACKS.outputs.map(jack => (
+                  <g key={jack.id}>
+                    <circle cx={jack.x} cy={jack.y} r={8} fill="#1a1a1a"
+                      stroke={patch.connections.some(c => c.fromJack === jack.id) ? '#555' : '#2a2a2a'} strokeWidth="1.5" />
+                    <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">{jack.label}</text>
+                  </g>
+                ))}
+                {DFAM_JACKS.inputs.map(jack => (
+                  <g key={jack.id}>
+                    <circle cx={jack.x} cy={jack.y} r={8} fill="#1a1a1a"
+                      stroke={patch.connections.some(c => c.toJack === jack.id) ? '#555' : '#2a2a2a'} strokeWidth="1.5" />
+                    <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">{jack.label}</text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+            <div className="space-y-1.5">
+              {patch.connections.map((conn, i) => (
+                <div key={i} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex(conn.color) }} />
+                  <span>
+                    {allJacks.find(j => j.id === conn.fromJack)?.label ?? conn.fromJack}
+                    {' → '}
+                    {allJacks.find(j => j.id === conn.toJack)?.label ?? conn.toJack}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Notes */}
+        {patch.sequenceNotes && (
+          <section>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">Notes</div>
+            <p className="text-sm font-mono text-zinc-400 whitespace-pre-wrap leading-relaxed">{patch.sequenceNotes}</p>
+          </section>
+        )}
+
+        {patch.audioUrl && (
+          <section>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">Audio Reference</div>
+            <a href={patch.audioUrl} target="_blank" rel="noopener noreferrer"
+              className="text-sm font-mono text-orange-500 hover:text-orange-400 underline">
+              {patch.audioUrl}
+            </a>
+          </section>
+        )}
+      </main>
+    </div>
+  )
+}
