@@ -59,11 +59,12 @@ export function AudioUpload({ value, onChange }: AudioUploadProps) {
       if (!presignRes.ok) throw new Error('Presign failed')
       const { uploadUrl, publicUrl } = await presignRes.json()
 
-      await fetch(uploadUrl, {
+      const s3Res = await fetch(uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'audio/mpeg' },
         body: file,
       })
+      if (!s3Res.ok) throw new Error(`S3 upload failed: ${s3Res.status}`)
 
       setFilename(file.name)
       onChange(publicUrl)
@@ -86,7 +87,7 @@ export function AudioUpload({ value, onChange }: AudioUploadProps) {
       audio.pause()
       setPlaying(false)
     } else {
-      audio.play()
+      audio.play().catch(() => setPlaying(false))
       setPlaying(true)
     }
   }
