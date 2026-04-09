@@ -28,6 +28,9 @@ export function PatchCard({ patch }: PatchCardProps) {
           </div>
           <div className="flex items-center gap-3 text-[11px] text-zinc-600">
             <span>{patch._count.connections} cables</span>
+            {patch.audioUrl && (
+              <span className="text-zinc-500" title="Has audio">♪</span>
+            )}
             {patch.tags.length > 0 && (
               <div className="flex gap-1 flex-wrap">
                 {patch.tags.map(tag => (

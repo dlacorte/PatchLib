@@ -44,6 +44,16 @@ describe('PatchCard', () => {
     render(<PatchCard patch={mockPatch} />)
     expect(screen.getByText('percussion')).toBeInTheDocument()
   })
+
+  it('shows ♪ indicator when patch has audio', () => {
+    render(<PatchCard patch={{ ...mockPatch, audioUrl: 'https://example.com/patch.mp3' }} />)
+    expect(screen.getByText('♪')).toBeInTheDocument()
+  })
+
+  it('does not show ♪ indicator when patch has no audio', () => {
+    render(<PatchCard patch={{ ...mockPatch, audioUrl: null }} />)
+    expect(screen.queryByText('♪')).not.toBeInTheDocument()
+  })
 })
 
 describe('SearchBar', () => {
