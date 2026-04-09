@@ -82,19 +82,19 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
       <div className="bg-[#0f0f0f] border border-zinc-800 rounded overflow-hidden">
         <svg
           width="100%"
-          viewBox="0 0 560 100"
+          viewBox="0 0 700 110"
           className="block"
           style={{ fontFamily: 'monospace' }}
         >
-          <text x="8" y="29" fill="#3a3a3a" fontSize="8">OUT</text>
-          <text x="8" y="79" fill="#3a3a3a" fontSize="8">IN</text>
+          <text x="4" y="32" fill="#3a3a3a" fontSize="8">OUT</text>
+          <text x="4" y="86" fill="#3a3a3a" fontSize="8">IN</text>
 
           {/* Cables */}
           {connections.map((conn, i) => {
             const from = getJack(conn.fromJack)
             const to = getJack(conn.toJack)
             if (!from || !to) return null
-            const midY = (from.y + to.y) / 2 + 10
+            const midY = (from.y + to.y) / 2 + 8
             const hex = colorHex(conn.color)
             const isSelected = selectedCable === i
             return (
@@ -132,7 +132,7 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
                 {isPending && (
                   <circle cx={jack.x} cy={jack.y} r={3.5} fill={activeCableColor} opacity={0.9} />
                 )}
-                <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">
+                <text x={jack.x} y={jack.y + 17} textAnchor="middle" fill="#555" fontSize="7">
                   {jack.label}
                 </text>
               </g>
@@ -157,7 +157,7 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
                   strokeWidth={1.5}
                   strokeDasharray={isTargeting ? '3,2' : undefined}
                 />
-                <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">
+                <text x={jack.x} y={jack.y + 17} textAnchor="middle" fill="#555" fontSize="7">
                   {jack.label}
                 </text>
               </g>

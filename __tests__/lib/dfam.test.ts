@@ -1,30 +1,41 @@
 import { DFAM_KNOBS, DFAM_JACKS, CABLE_COLORS } from '@/lib/dfam'
 
 describe('DFAM_KNOBS', () => {
-  it('has 13 main knobs and toggles', () => {
-    const main = DFAM_KNOBS.filter(k => k.section === 'main')
-    expect(main).toHaveLength(13)
+  it('has 8 oscillator controls (4 per VCO)', () => {
+    const osc = DFAM_KNOBS.filter(k => k.section === 'oscillators')
+    expect(osc).toHaveLength(8)
   })
 
-  it('has 11 rotary knobs in main section', () => {
-    const knobs = DFAM_KNOBS.filter(k => k.section === 'main' && k.type === 'knob')
-    expect(knobs).toHaveLength(11)
+  it('has 2 mode switches in oscillator section', () => {
+    const switches = DFAM_KNOBS.filter(k => k.section === 'oscillators' && k.type === 'switch')
+    expect(switches).toHaveLength(2)
+    expect(switches.map(s => s.id)).toEqual(['vco1_mode', 'vco2_mode'])
   })
 
-  it('has 2 toggle switches in main section', () => {
-    const toggles = DFAM_KNOBS.filter(k => k.section === 'main' && k.type === 'toggle')
-    expect(toggles).toHaveLength(2)
-    expect(toggles.map(t => t.id)).toEqual(['vco1_wave', 'vco2_wave'])
+  it('has 3 envelope knobs', () => {
+    const env = DFAM_KNOBS.filter(k => k.section === 'envelope')
+    expect(env).toHaveLength(3)
+  })
+
+  it('has 3 filter knobs', () => {
+    const filter = DFAM_KNOBS.filter(k => k.section === 'filter')
+    expect(filter).toHaveLength(3)
+  })
+
+  it('has tempo in sequencer section', () => {
+    const seq = DFAM_KNOBS.filter(k => k.section === 'sequencer')
+    expect(seq).toHaveLength(1)
+    expect(seq[0].id).toBe('tempo')
   })
 })
 
 describe('DFAM_JACKS', () => {
-  it('has 7 outputs', () => {
-    expect(DFAM_JACKS.outputs).toHaveLength(7)
+  it('has 8 outputs', () => {
+    expect(DFAM_JACKS.outputs).toHaveLength(8)
   })
 
-  it('has 7 inputs', () => {
-    expect(DFAM_JACKS.inputs).toHaveLength(7)
+  it('has 12 inputs', () => {
+    expect(DFAM_JACKS.inputs).toHaveLength(12)
   })
 
   it('all jacks have id, label, x, y', () => {
