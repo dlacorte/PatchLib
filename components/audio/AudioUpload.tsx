@@ -11,7 +11,7 @@ interface AudioUploadProps {
 
 function seededHeight(seed: string, index: number): number {
   let h = 0
-  const s = seed + index
+  const s = `${seed}:${index}`
   for (let j = 0; j < s.length; j++) {
     h = (h * 31 + s.charCodeAt(j)) & 0xffff
   }
