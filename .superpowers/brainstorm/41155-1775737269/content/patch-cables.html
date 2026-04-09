@@ -1,0 +1,108 @@
+<h2>How should patch cable connections be captured?</h2>
+<p class="subtitle">Cables are the other half of a patch — how the jacks are wired together</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;min-height:120px;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Patch Connections</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;background:#161616;border-radius:4px;padding:7px 10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#e07b39;flex-shrink:0;"></span>
+          <span style="font-size:11px;color:#e07b39;font-weight:600;">VCO1 OUT</span>
+          <span style="font-size:11px;color:#555;">→</span>
+          <span style="font-size:11px;color:#aaa;">VCF IN</span>
+          <span style="font-size:9px;color:#555;margin-left:auto;">orange</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:#161616;border-radius:4px;padding:7px 10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#5b9bd5;flex-shrink:0;"></span>
+          <span style="font-size:11px;color:#5b9bd5;font-weight:600;">EG OUT</span>
+          <span style="font-size:11px;color:#555;">→</span>
+          <span style="font-size:11px;color:#aaa;">VCA IN</span>
+          <span style="font-size:9px;color:#555;margin-left:auto;">blue</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:#161616;border-radius:4px;padding:7px 10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#7ec87e;flex-shrink:0;"></span>
+          <span style="font-size:11px;color:#7ec87e;font-weight:600;">MIDI GATE</span>
+          <span style="font-size:11px;color:#555;">→</span>
+          <span style="font-size:11px;color:#aaa;">TRIG IN</span>
+          <span style="font-size:9px;color:#555;margin-left:auto;">green</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:#1a1a1a;border:1px dashed #333;border-radius:4px;padding:7px 10px;cursor:pointer;">
+          <span style="font-size:18px;color:#444;line-height:1;">+</span>
+          <span style="font-size:11px;color:#444;">Add connection…</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Connection List</h3>
+      <p>Each cable is a row: source jack → destination jack + cable color. Add rows with a button. Fast, scannable, easy to re-read later.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;min-height:120px;position:relative;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Patch Bay</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:9px;color:#555;margin-bottom:5px;">OUTPUTS</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #e07b39;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">VCO1 OUT</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #666;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">EG OUT</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #666;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">MIDI GATE</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:#555;margin-bottom:5px;">INPUTS</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #e07b39;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">VCF IN</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #666;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">VCA IN</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="width:12px;height:12px;border-radius:50%;border:2px solid #666;background:#1a1a1a;"></div>
+              <span style="font-size:10px;color:#aaa;">TRIG IN</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 300 140">
+        <path d="M 90 68 Q 150 50 210 68" stroke="#e07b39" stroke-width="2" fill="none" opacity="0.7"/>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>B — Visual Patch Bay</h3>
+      <p>Click jacks to draw cable lines between outputs and inputs. Visually matches real patching. High effort to build, impressive to use.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;min-height:120px;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Patch Notes</div>
+      <div style="background:#111;border:1px solid #222;border-radius:4px;padding:10px;font-size:11px;color:#aaa;line-height:1.7;font-family:monospace;">
+        VCO1 OUT → VCF IN (orange)<br>
+        EG OUT → VCA IN (blue)<br>
+        MIDI GATE → TRIG IN (green)<br>
+        <span style="color:#444;">// also tried VCO2 out to EXT</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Free Text Notes</h3>
+      <p>A plain textarea. No structure enforced. Maximum flexibility, zero friction. Easy to type quickly, hard to parse programmatically later.</p>
+    </div>
+  </div>
+
+</div>

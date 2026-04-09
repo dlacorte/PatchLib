@@ -1,0 +1,114 @@
+<h2>How should knob settings be captured?</h2>
+<p class="subtitle">This is the core interaction — how a user records their patch settings for each synth</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">DFAM — Knob Settings</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;border:2px solid #e07b39;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;">
+            <div style="width:2px;height:14px;background:#e07b39;transform:rotate(30deg);transform-origin:bottom center;margin-top:-2px;"></div>
+          </div>
+          <div style="font-size:9px;color:#aaa;">TEMPO</div>
+          <div style="font-size:10px;color:#e07b39;">7.2</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;border:2px solid #e07b39;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;">
+            <div style="width:2px;height:14px;background:#e07b39;transform:rotate(-60deg);transform-origin:bottom center;margin-top:-2px;"></div>
+          </div>
+          <div style="font-size:9px;color:#aaa;">VCO1 FREQ</div>
+          <div style="font-size:10px;color:#e07b39;">3.0</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;border:2px solid #e07b39;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;">
+            <div style="width:2px;height:14px;background:#e07b39;transform:rotate(80deg);transform-origin:bottom center;margin-top:-2px;"></div>
+          </div>
+          <div style="font-size:9px;color:#aaa;">VCO2 FREQ</div>
+          <div style="font-size:10px;color:#e07b39;">8.5</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;border:2px solid #e07b39;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;">
+            <div style="width:2px;height:14px;background:#e07b39;transform:rotate(-20deg);transform-origin:bottom center;margin-top:-2px;"></div>
+          </div>
+          <div style="font-size:9px;color:#aaa;">DECAY</div>
+          <div style="font-size:10px;color:#e07b39;">5.1</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Visual Knob Grid</h3>
+      <p>Interactive knob dials arranged to mirror the actual synth layout. Drag or click to set position. Visually satisfying but more complex to build.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">DFAM — Knob Settings</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:#aaa;width:80px;">TEMPO</span>
+          <div style="flex:1;height:4px;background:#222;border-radius:2px;margin:0 8px;position:relative;">
+            <div style="width:72%;height:100%;background:#e07b39;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px;color:#e07b39;width:28px;text-align:right;">7.2</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:#aaa;width:80px;">VCO1 FREQ</span>
+          <div style="flex:1;height:4px;background:#222;border-radius:2px;margin:0 8px;position:relative;">
+            <div style="width:30%;height:100%;background:#e07b39;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px;color:#e07b39;width:28px;text-align:right;">3.0</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:#aaa;width:80px;">VCO2 FREQ</span>
+          <div style="flex:1;height:4px;background:#222;border-radius:2px;margin:0 8px;position:relative;">
+            <div style="width:85%;height:100%;background:#e07b39;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px;color:#e07b39;width:28px;text-align:right;">8.5</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:#aaa;width:80px;">DECAY</span>
+          <div style="flex:1;height:4px;background:#222;border-radius:2px;margin:0 8px;position:relative;">
+            <div style="width:51%;height:100%;background:#e07b39;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px;color:#e07b39;width:28px;text-align:right;">5.1</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Slider List</h3>
+      <p>Each knob is a labeled horizontal slider (0–10 range). Fast to fill in, easy to scan, no visual complexity. Good balance of speed and clarity.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:16px;border-radius:6px;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">DFAM — Knob Settings</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="background:#161616;border-radius:4px;padding:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;color:#888;">TEMPO</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39;">7.2</span>
+        </div>
+        <div style="background:#161616;border-radius:4px;padding:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;color:#888;">VCO1 FREQ</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39;">3.0</span>
+        </div>
+        <div style="background:#161616;border-radius:4px;padding:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;color:#888;">VCO2 FREQ</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39;">8.5</span>
+        </div>
+        <div style="background:#161616;border-radius:4px;padding:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;color:#888;">DECAY</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39;">5.1</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Numeric Grid</h3>
+      <p>Simple number inputs in a two-column grid. Fastest to enter, most compact to read back. Pure function — no chrome.</p>
+    </div>
+  </div>
+
+</div>

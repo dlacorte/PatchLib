@@ -1,0 +1,171 @@
+<h2>Three screens — does this structure feel right?</h2>
+<p class="subtitle">Click a screen to select it if something needs changing</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;">
+
+  <!-- Screen 1: Library -->
+  <div class="card" data-choice="library" onclick="toggleSelect(this)" style="cursor:pointer;">
+    <div class="card-image" style="background:#0a0a0a;padding:12px;border-radius:6px;min-height:220px;">
+      <!-- Nav -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:700;color:#e07b39;letter-spacing:2px;">PATCHLIB</span>
+        <div style="background:#e07b39;color:#000;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;">+ NEW</div>
+      </div>
+      <!-- Search -->
+      <div style="background:#161616;border:1px solid #2a2a2a;border-radius:4px;padding:5px 8px;margin-bottom:8px;">
+        <span style="font-size:10px;color:#444;">Search patches…</span>
+      </div>
+      <!-- Tags -->
+      <div style="display:flex;gap:4px;margin-bottom:8px;">
+        <span style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:2px 6px;border-radius:3px;">bass</span>
+        <span style="background:#e07b39;font-size:8px;color:#000;font-weight:700;padding:2px 6px;border-radius:3px;">percussion</span>
+        <span style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:2px 6px;border-radius:3px;">drone</span>
+      </div>
+      <!-- Cards -->
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="background:#161616;border-radius:4px;padding:7px 8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:#eee;">Heavy Kick</div>
+            <div style="font-size:9px;color:#555;">DFAM · 3 cables · percussion</div>
+          </div>
+          <div style="font-size:9px;color:#444;">Apr 8</div>
+        </div>
+        <div style="background:#161616;border-radius:4px;padding:7px 8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:#eee;">Acid Loop</div>
+            <div style="font-size:9px;color:#555;">DFAM · 5 cables · bass</div>
+          </div>
+          <div style="font-size:9px;color:#444;">Apr 6</div>
+        </div>
+        <div style="background:#161616;border-radius:4px;padding:7px 8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:#eee;">Dark Drone</div>
+            <div style="font-size:9px;color:#555;">DFAM · 2 cables · drone</div>
+          </div>
+          <div style="font-size:9px;color:#444;">Apr 3</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Library</h3>
+      <p>Search bar + tag filters + patch list. One click opens a patch.</p>
+    </div>
+  </div>
+
+  <!-- Screen 2: Create/Edit -->
+  <div class="card" data-choice="create" onclick="toggleSelect(this)" style="cursor:pointer;">
+    <div class="card-image" style="background:#0a0a0a;padding:12px;border-radius:6px;min-height:220px;">
+      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">New Patch · DFAM</div>
+      <!-- Name field -->
+      <div style="background:#161616;border:1px solid #333;border-radius:3px;padding:5px 8px;margin-bottom:8px;">
+        <span style="font-size:11px;color:#eee;">Heavy Kick</span>
+      </div>
+      <!-- Knob grid preview -->
+      <div style="background:#111;border:1px solid #222;border-radius:4px;padding:8px;margin-bottom:6px;">
+        <div style="font-size:8px;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">Knobs</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+          <div style="text-align:center;">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e07b39;margin:0 auto 2px;background:#161616;"></div>
+            <div style="font-size:7px;color:#666;">TEMPO</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #444;margin:0 auto 2px;background:#161616;"></div>
+            <div style="font-size:7px;color:#666;">VCO1</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #444;margin:0 auto 2px;background:#161616;"></div>
+            <div style="font-size:7px;color:#666;">VCO2</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #444;margin:0 auto 2px;background:#161616;"></div>
+            <div style="font-size:7px;color:#666;">NOISE</div>
+          </div>
+        </div>
+      </div>
+      <!-- Patch bay preview -->
+      <div style="background:#111;border:1px solid #222;border-radius:4px;padding:8px;">
+        <div style="font-size:8px;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">Patch Bay</div>
+        <svg width="100%" height="40" viewBox="0 0 200 40">
+          <!-- Outputs row -->
+          <circle cx="20" cy="12" r="5" fill="#1a1a1a" stroke="#e07b39" stroke-width="1.5"/>
+          <circle cx="50" cy="12" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <circle cx="80" cy="12" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <circle cx="110" cy="12" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <!-- Inputs row -->
+          <circle cx="20" cy="32" r="5" fill="#1a1a1a" stroke="#e07b39" stroke-width="1.5"/>
+          <circle cx="50" cy="32" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <circle cx="80" cy="32" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <circle cx="110" cy="32" r="5" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+          <!-- Cable -->
+          <path d="M 20 17 Q 20 22 20 27" stroke="#e07b39" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Create / Edit</h3>
+      <p>Name + tags → knob grid → patch bay → save. Single scrollable page.</p>
+    </div>
+  </div>
+
+  <!-- Screen 3: Detail -->
+  <div class="card" data-choice="detail" onclick="toggleSelect(this)" style="cursor:pointer;">
+    <div class="card-image" style="background:#0a0a0a;padding:12px;border-radius:6px;min-height:220px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#eee;margin-bottom:2px;">Heavy Kick</div>
+          <div style="font-size:9px;color:#555;">DFAM · Apr 8 2026</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <div style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:3px 6px;border-radius:3px;">Edit</div>
+          <div style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:3px 6px;border-radius:3px;">⋯</div>
+        </div>
+      </div>
+      <!-- Tags -->
+      <div style="display:flex;gap:4px;margin-bottom:8px;">
+        <span style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:2px 6px;border-radius:3px;">percussion</span>
+        <span style="background:#1e1e1e;border:1px solid #333;font-size:8px;color:#aaa;padding:2px 6px;border-radius:3px;">kick</span>
+      </div>
+      <!-- Read-only knobs -->
+      <div style="background:#111;border:1px solid #1a1a1a;border-radius:4px;padding:8px;margin-bottom:6px;">
+        <div style="font-size:8px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Knob Settings</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:9px;color:#666;">TEMPO</span>
+            <span style="font-size:9px;color:#e07b39;font-weight:600;">7.2</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:9px;color:#666;">VCO1 FREQ</span>
+            <span style="font-size:9px;color:#e07b39;font-weight:600;">3.0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:9px;color:#666;">EG DECAY</span>
+            <span style="font-size:9px;color:#e07b39;font-weight:600;">8.1</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:9px;color:#666;">VCF CUTOFF</span>
+            <span style="font-size:9px;color:#e07b39;font-weight:600;">4.5</span>
+          </div>
+        </div>
+      </div>
+      <!-- Cables -->
+      <div style="background:#111;border:1px solid #1a1a1a;border-radius:4px;padding:8px;">
+        <div style="font-size:8px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Cables</div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#e07b39;flex-shrink:0;"></span>
+            <span style="font-size:9px;color:#777;">VCO1 OUT → VCF IN</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#5b9bd5;flex-shrink:0;"></span>
+            <span style="font-size:9px;color:#777;">EG OUT → VCA IN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Detail / Read</h3>
+      <p>Read-only view of a saved patch. Knob values + cable list. Edit button opens the editor.</p>
+    </div>
+  </div>
+
+</div>
