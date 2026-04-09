@@ -38,6 +38,15 @@ describe('POST /api/audio/presign', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 400 when contentType is not audio/mpeg even if filename ends in .mp3', async () => {
+    const req = new NextRequest('http://localhost/api/audio/presign', {
+      method: 'POST',
+      body: JSON.stringify({ filename: 'trick.mp3', contentType: 'audio/wav' }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
   it('returns 400 when body is missing', async () => {
     const req = new NextRequest('http://localhost/api/audio/presign', {
       method: 'POST',

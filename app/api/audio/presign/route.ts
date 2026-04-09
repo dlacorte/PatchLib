@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'filename and contentType required' }, { status: 400 })
   }
 
-  if (body.contentType !== 'audio/mpeg' && !String(body.filename).endsWith('.mp3')) {
+  if (body.contentType !== 'audio/mpeg') {
     return NextResponse.json({ error: 'Only MP3 files are accepted' }, { status: 400 })
   }
 
