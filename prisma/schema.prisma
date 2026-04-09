@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Patch {
+  id            String            @id @default(cuid())
+  name          String
+  device        String            @default("DFAM")
+  description   String?
+  tags          String[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  knobSettings  KnobSetting[]
+  connections   CableConnection[]
+  sequenceNotes String?
+  audioUrl      String?
+  photoUrl      String?
+}
+
+model KnobSetting {
+  id      String @id @default(cuid())
+  patch   Patch  @relation(fields: [patchId], references: [id], onDelete: Cascade)
+  patchId String
+  knobId  String
+  value   Float
+}
+
+model CableConnection {
+  id       String @id @default(cuid())
+  patch    Patch  @relation(fields: [patchId], references: [id], onDelete: Cascade)
+  patchId  String
+  fromJack String
+  toJack   String
+  color    String
+}
