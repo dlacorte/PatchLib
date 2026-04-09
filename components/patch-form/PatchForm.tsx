@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import type { PatchFormValues, ConnectionFormValue } from '@/lib/types'
 import { KnobGrid } from '@/components/dfam/KnobGrid'
 import { PatchBay } from '@/components/dfam/PatchBay'
+import { AudioUpload } from '@/components/audio/AudioUpload'
 
 interface PatchFormProps {
   defaultValues: PatchFormValues
@@ -96,13 +97,10 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
           rows={3}
           className="w-full bg-[#111] border border-zinc-800 rounded px-3 py-2 text-sm font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors resize-none"
         />
-        <input
-          type="url"
-          value={audioUrl}
-          onChange={e => setAudioUrl(e.target.value)}
-          placeholder="Audio reference URL (optional)…"
-          className="w-full bg-[#111] border border-zinc-800 rounded px-3 py-2 text-sm font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
-        />
+        <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800">
+          Audio <span className="normal-case text-zinc-700 ml-1">optional</span>
+        </div>
+        <AudioUpload value={audioUrl} onChange={setAudioUrl} />
       </section>
 
       {/* Save */}
