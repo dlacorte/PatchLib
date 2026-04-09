@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PatchLib
 
-## Getting Started
+A personal patch library for Moog semi-modular synthesizers. Analog gear has no memory — knob positions, cable routings, and sequence settings disappear the moment you move on. PatchLib lets you document everything: knob values, patch bay connections, notes, and an audio recording so you can reconstruct any sound exactly as you had it.
 
-First, run the development server:
+## What it does
+
+- **Save patches** — document knob positions and patch bay cable connections
+- **Audio recording** — attach an MP3 reference so you know what the patch actually sounds like
+- **Search & filter** — find patches by name, description, or tags
+- **Tag system** — organize by character (bass, kick, drone, ambient…)
+
+## Supported devices
+
+| Device | Status |
+|---|---|
+| Moog DFAM (Drummer From Another Mother) | ✅ Supported |
+| Moog Subharmonicon | 🔜 Planned |
+| Moog Mother-32 | 🔜 Planned |
+
+## Tech stack
+
+- **Frontend:** Next.js 14 (App Router), Tailwind CSS, shadcn/ui
+- **Database:** Aurora Serverless v2 (PostgreSQL) via Prisma
+- **Storage:** AWS S3 (audio files, presigned upload)
+- **Deployment:** Vercel
+
+## Local development
 
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in DATABASE_URL and AUDIO_* variables
+
+# Generate Prisma client and push schema
+npx prisma generate
+npx prisma db push
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string (Aurora/Neon/local) |
+| `AUDIO_BUCKET_NAME` | S3 bucket for audio files |
+| `AUDIO_AWS_REGION` | AWS region (e.g. `us-east-1`) |
+| `AUDIO_AWS_ACCESS_KEY_ID` | IAM access key with `s3:PutObject` on the bucket |
+| `AUDIO_AWS_SECRET_ACCESS_KEY` | IAM secret key |
 
-## Learn More
+## Tests
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+77 tests across API routes, components, and utility functions.
