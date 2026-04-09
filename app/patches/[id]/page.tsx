@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { DFAM_PATCH_POINTS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
+import { AudioPlayer } from '@/components/audio/AudioPlayer'
 
 interface PageProps {
   params: { id: string }
@@ -120,11 +121,13 @@ export default async function PatchDetailPage({ params }: PageProps) {
 
         {patch.audioUrl && (
           <section>
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">Audio Reference</div>
-            <a href={patch.audioUrl} target="_blank" rel="noopener noreferrer"
-              className="text-sm font-mono text-orange-500 hover:text-orange-400 underline">
-              {patch.audioUrl}
-            </a>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">
+              Audio
+            </div>
+            <AudioPlayer
+              src={patch.audioUrl}
+              filename={patch.audioUrl.split('/').pop()}
+            />
           </section>
         )}
       </main>
