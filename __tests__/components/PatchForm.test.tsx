@@ -31,9 +31,9 @@ describe('PatchForm', () => {
     expect(screen.getByPlaceholderText(/patch name/i)).toBeInTheDocument()
   })
 
-  it('renders knob settings section', () => {
+  it('renders sound engine section', () => {
     render(<PatchForm defaultValues={defaultValues} onSubmit={jest.fn()} />)
-    expect(screen.getByText(/knob settings/i)).toBeInTheDocument()
+    expect(screen.getByText(/sound engine/i)).toBeInTheDocument()
   })
 
   it('renders patch bay section', () => {

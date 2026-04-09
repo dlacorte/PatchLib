@@ -12,8 +12,35 @@ interface KnobGridProps {
   onChange: (values: KnobValues) => void
 }
 
+function ZoneLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-[3px] pb-1 mb-3 border-b border-zinc-800/60">
+      {children}
+    </div>
+  )
+}
+
+function BlockLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest mb-3">
+      {children}
+    </div>
+  )
+}
+
+function BlockWell({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-[#0d0d0d] border border-zinc-800/70 rounded p-3 ${className}`}>
+      {children}
+    </div>
+  )
+}
+
 export function KnobGrid({ values, onChange }: KnobGridProps) {
   const [seqOpen, setSeqOpen] = useState(true)
+  const [triggerActive, setTriggerActive] = useState(false)
+  const [runStop, setRunStop] = useState(false)
+  const [advanceActive, setAdvanceActive] = useState(false)
 
   const handleChange = useCallback(
     (id: string, value: number) => onChange({ ...values, [id]: value }),
@@ -40,94 +67,148 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
         label={k.label}
         value={values[k.id] ?? k.defaultValue}
         onChange={handleChange}
+        min={k.min}
+        max={k.max}
       />
     )
   }
 
-  const vco1Knobs = DFAM_KNOBS.filter(k => k.section === 'oscillators' && k.id.startsWith('vco1'))
-  const vco2Knobs = DFAM_KNOBS.filter(k => k.section === 'oscillators' && k.id.startsWith('vco2'))
-  const noiseKnobs = DFAM_KNOBS.filter(k => k.section === 'noise')
-  const envelopeKnobs = DFAM_KNOBS.filter(k => k.section === 'envelope')
+  const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
   const filterKnobs = DFAM_KNOBS.filter(k => k.section === 'filter')
-  const tempoKnob = DFAM_KNOBS.find(k => k.id === 'tempo')!
+  const modVca      = DFAM_KNOBS.filter(k => k.section === 'mod_vca')
+  const tempoKnob   = DFAM_KNOBS.find(k => k.id === 'tempo')!
+
+  // LEFT BLOCK — Pitch + FM + Sync: exact 2×4 grid
+  // Row 1: VCO DECAY | SEQ PITCH MOD | VCO 1 EG AMT | VCO 1 FREQ
+  // Row 2: 1-2 FM AMT | HARD SYNC    | VCO 2 EG AMT | VCO 2 FREQ
+  const pitchRow1 = ['vco_decay', 'seq_pitch_mod', 'vco1_eg_amount', 'vco1_freq']
+  const pitchRow2 = ['fm_1_2_amount', 'hard_sync', 'vco2_eg_amount', 'vco2_freq']
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
 
-      {/* Oscillators */}
-      <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-4">
-        <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
-          Oscillators
-        </div>
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-3 font-mono">VCO 1</div>
-            <div className="flex flex-wrap gap-4">{vco1Knobs.map(renderControl)}</div>
-          </div>
-          <div>
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-3 font-mono">VCO 2</div>
-            <div className="flex flex-wrap gap-4">{vco2Knobs.map(renderControl)}</div>
-          </div>
+      {/* ── ZONE 1: SOUND ENGINE ───────────────────────────────────── */}
+      <div>
+        <ZoneLabel>Sound Engine</ZoneLabel>
+
+        <div className="flex gap-3 flex-wrap">
+
+          {/* Block 1 — Pitch + FM + Sync: 2×4 grid */}
+          <BlockWell className="flex-none">
+            <BlockLabel>Pitch · FM · Sync</BlockLabel>
+            <div className="grid grid-cols-4 gap-x-4 gap-y-4">
+              {pitchRow1.map(id => renderControl(knobById[id]))}
+              {pitchRow2.map(id => renderControl(knobById[id]))}
+            </div>
+          </BlockWell>
+
+          {/* Block 2 — Wave + Mixer */}
+          <BlockWell className="flex-none">
+            <BlockLabel>Wave · Mixer</BlockLabel>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {renderControl(knobById['vco1_wave'])}
+              {renderControl(knobById['vco1_level'])}
+              {renderControl(knobById['vco2_wave'])}
+              {renderControl(knobById['vco2_level'])}
+            </div>
+            <div className="mt-3 flex justify-center">
+              {renderControl(knobById['noise_ext_level'])}
+            </div>
+          </BlockWell>
+
+          {/* Block 3 — Filter: column of 5 */}
+          <BlockWell className="flex-none">
+            <BlockLabel>Filter</BlockLabel>
+            <div className="flex flex-col gap-3 items-center">
+              {filterKnobs.map(renderControl)}
+            </div>
+          </BlockWell>
+
+          {/* Block 4 — Mod + VCA: column of 4 */}
+          <BlockWell className="flex-none">
+            <BlockLabel>Mod · VCA</BlockLabel>
+            <div className="flex flex-col gap-3 items-center">
+              {modVca.map(renderControl)}
+            </div>
+          </BlockWell>
+
         </div>
       </div>
 
-      {/* Noise / Envelope / Filter */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-4">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
-            Noise
-          </div>
-          <div className="flex flex-wrap gap-4">{noiseKnobs.map(renderControl)}</div>
-        </div>
-
-        <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-4">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
-            Envelope
-          </div>
-          <div className="flex flex-wrap gap-4">{envelopeKnobs.map(renderControl)}</div>
-        </div>
-
-        <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-4">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
-            Filter
-          </div>
-          <div className="flex flex-wrap gap-4">{filterKnobs.map(renderControl)}</div>
-        </div>
-      </div>
-
-      {/* Sequencer */}
+      {/* ── ZONE 2: SEQUENCER ─────────────────────────────────────── */}
       <div>
         <button
           type="button"
           onClick={() => setSeqOpen(o => !o)}
-          className="w-full text-left flex items-center justify-between text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4"
+          className="w-full text-left flex items-center justify-between text-[9px] font-mono text-zinc-600 uppercase tracking-[3px] pb-1 mb-3 border-b border-zinc-800/60"
         >
           <span>Sequencer</span>
-          <span className="text-zinc-600">{seqOpen ? '▲' : '▼'}</span>
+          <span className="text-zinc-700">{seqOpen ? '▲' : '▼'}</span>
         </button>
 
         {seqOpen && (
-          <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-4">
-            <div className="flex items-start gap-8 flex-wrap">
-              <div className="flex flex-col items-center gap-1">
+          <BlockWell>
+            <div className="flex gap-6 items-start">
+
+              {/* Tempo + Transport */}
+              <div className="flex flex-col items-center gap-3 pt-5 flex-none">
                 <Knob
                   id={tempoKnob.id}
                   label={tempoKnob.label}
                   value={values[tempoKnob.id] ?? tempoKnob.defaultValue}
                   onChange={handleChange}
+                  min={tempoKnob.min}
+                  max={tempoKnob.max}
                 />
+                <div className="flex flex-col gap-1.5 w-full">
+                  <button
+                    type="button"
+                    onPointerDown={() => setTriggerActive(true)}
+                    onPointerUp={() => setTriggerActive(false)}
+                    onPointerLeave={() => setTriggerActive(false)}
+                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                      triggerActive
+                        ? 'bg-orange-500 text-black border-orange-500'
+                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                    }`}
+                  >
+                    TRIGGER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRunStop(r => !r)}
+                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                      runStop
+                        ? 'bg-orange-500 text-black border-orange-500'
+                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                    }`}
+                  >
+                    {runStop ? 'STOP' : 'RUN'}
+                  </button>
+                  <button
+                    type="button"
+                    onPointerDown={() => setAdvanceActive(true)}
+                    onPointerUp={() => setAdvanceActive(false)}
+                    onPointerLeave={() => setAdvanceActive(false)}
+                    className={`px-2 py-1 text-[8px] font-mono font-bold rounded border transition-colors select-none ${
+                      advanceActive
+                        ? 'bg-orange-500 text-black border-orange-500'
+                        : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-300'
+                    }`}
+                  >
+                    ADVANCE
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-8 gap-3">
+
+              {/* Divider */}
+              <div className="w-px self-stretch bg-zinc-800/60 flex-none" />
+
+              {/* 8 step columns — Velocity (top) · Pitch (bottom) */}
+              <div className="grid grid-cols-8 gap-3 flex-1">
                 {Array.from({ length: SEQUENCER_STEPS }, (_, i) => i + 1).map(step => (
                   <div key={step} className="flex flex-col items-center gap-2">
-                    <span className="text-[8px] text-zinc-600 font-mono">S{step}</span>
-                    <Knob
-                      id={`seq_${step}_pitch`}
-                      label="PCH"
-                      value={values[`seq_${step}_pitch`] ?? 5}
-                      onChange={handleChange}
-                      size={36}
-                    />
+                    <span className="text-[8px] text-zinc-700 font-mono">{step}</span>
                     <Knob
                       id={`seq_${step}_vel`}
                       label="VEL"
@@ -135,13 +216,22 @@ export function KnobGrid({ values, onChange }: KnobGridProps) {
                       onChange={handleChange}
                       size={36}
                     />
+                    <Knob
+                      id={`seq_${step}_pitch`}
+                      label="PCH"
+                      value={values[`seq_${step}_pitch`] ?? 5}
+                      onChange={handleChange}
+                      size={36}
+                    />
                   </div>
                 ))}
               </div>
+
             </div>
-          </div>
+          </BlockWell>
         )}
       </div>
+
     </div>
   )
 }

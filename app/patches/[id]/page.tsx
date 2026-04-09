@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { DFAM_JACKS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
+import { DFAM_PATCH_POINTS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
 
 interface PageProps {
@@ -28,8 +28,6 @@ export default async function PatchDetailPage({ params }: PageProps) {
   const displayKnobs = DFAM_KNOBS.filter(
     def => knobMap[def.id] !== undefined && knobMap[def.id] !== def.defaultValue,
   )
-
-  const allJacks = [...DFAM_JACKS.outputs, ...DFAM_JACKS.inputs]
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -89,53 +87,25 @@ export default async function PatchDetailPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* Patch bay read-only */}
+        {/* Patch bay connections */}
         {patch.connections.length > 0 && (
           <section>
             <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
               Patch Bay · {patch.connections.length} cable{patch.connections.length !== 1 ? 's' : ''}
             </div>
-            <div className="bg-[#0f0f0f] border border-zinc-800 rounded overflow-hidden mb-3">
-              <svg width="100%" viewBox="0 0 560 100" className="block" style={{ fontFamily: 'monospace' }}>
-                <text x="8" y="29" fill="#3a3a3a" fontSize="8">OUT</text>
-                <text x="8" y="79" fill="#3a3a3a" fontSize="8">IN</text>
-                {patch.connections.map((conn, i) => {
-                  const from = allJacks.find(j => j.id === conn.fromJack)
-                  const to = allJacks.find(j => j.id === conn.toJack)
-                  if (!from || !to) return null
-                  const midY = (from.y + to.y) / 2 + 10
-                  return (
-                    <path key={i} d={`M ${from.x},${from.y} C ${from.x},${midY} ${to.x},${midY} ${to.x},${to.y}`}
-                      stroke={colorHex(conn.color)} strokeWidth="2" fill="none" strokeOpacity="0.8" />
-                  )
-                })}
-                {DFAM_JACKS.outputs.map(jack => (
-                  <g key={jack.id}>
-                    <circle cx={jack.x} cy={jack.y} r={8} fill="#1a1a1a"
-                      stroke={patch.connections.some(c => c.fromJack === jack.id) ? '#555' : '#2a2a2a'} strokeWidth="1.5" />
-                    <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">{jack.label}</text>
-                  </g>
-                ))}
-                {DFAM_JACKS.inputs.map(jack => (
-                  <g key={jack.id}>
-                    <circle cx={jack.x} cy={jack.y} r={8} fill="#1a1a1a"
-                      stroke={patch.connections.some(c => c.toJack === jack.id) ? '#555' : '#2a2a2a'} strokeWidth="1.5" />
-                    <text x={jack.x} y={jack.y + 19} textAnchor="middle" fill="#555" fontSize="7">{jack.label}</text>
-                  </g>
-                ))}
-              </svg>
-            </div>
             <div className="space-y-1.5">
-              {patch.connections.map((conn, i) => (
-                <div key={i} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex(conn.color) }} />
-                  <span>
-                    {allJacks.find(j => j.id === conn.fromJack)?.label ?? conn.fromJack}
-                    {' → '}
-                    {allJacks.find(j => j.id === conn.toJack)?.label ?? conn.toJack}
-                  </span>
-                </div>
-              ))}
+              {patch.connections.map((conn, i) => {
+                const from = DFAM_PATCH_POINTS.find(p => p.id === conn.fromJack)
+                const to = DFAM_PATCH_POINTS.find(p => p.id === conn.toJack)
+                return (
+                  <div key={i} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex(conn.color) }} />
+                    <span className="text-orange-400/70">{from?.label ?? conn.fromJack}</span>
+                    <span className="text-zinc-700">→</span>
+                    <span>{to?.label ?? conn.toJack}</span>
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}

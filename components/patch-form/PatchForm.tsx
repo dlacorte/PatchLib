@@ -63,20 +63,25 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
         />
       </section>
 
-      {/* Knob settings */}
+      {/* Sound Engine + Patch Bay: side by side on wide screens */}
       <section>
-        <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-          Knob Settings
-        </div>
-        <KnobGrid values={knobSettings} onChange={setKnobSettings} />
-      </section>
+        <div className="flex gap-6 items-start">
+          {/* Left — Sound Engine + Sequencer */}
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+              Sound Engine
+            </div>
+            <KnobGrid values={knobSettings} onChange={setKnobSettings} />
+          </div>
 
-      {/* Patch bay */}
-      <section>
-        <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-          Patch Bay
+          {/* Right — Patch Bay column */}
+          <div className="w-64 flex-none">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+              Patch Bay
+            </div>
+            <PatchBay connections={connections} onChange={setConnections} />
+          </div>
         </div>
-        <PatchBay connections={connections} onChange={setConnections} />
       </section>
 
       {/* Notes */}

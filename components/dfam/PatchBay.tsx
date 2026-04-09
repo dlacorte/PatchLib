@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DFAM_JACKS, CABLE_COLORS, type JackDef } from '@/lib/dfam'
+import { DFAM_PATCH_POINTS, CABLE_COLORS, type PatchPointDef } from '@/lib/dfam'
 
 interface Connection {
   fromJack: string
@@ -14,103 +14,38 @@ interface PatchBayProps {
   onChange: (connections: Connection[]) => void
 }
 
-const ALL_JACKS = [
-  ...DFAM_JACKS.outputs,
-  ...DFAM_JACKS.inputs,
-  ...DFAM_JACKS.audioOutputs,
-  ...DFAM_JACKS.audioInputs,
-]
-
-const SOURCE_IDS = new Set([
-  ...DFAM_JACKS.outputs.map(j => j.id),
-  ...DFAM_JACKS.audioOutputs.map(j => j.id),
-])
-
-function getJack(id: string): JackDef | undefined {
-  return ALL_JACKS.find(j => j.id === id)
-}
+const OUT_IDS = new Set(DFAM_PATCH_POINTS.filter(p => p.direction === 'out').map(p => p.id))
 
 function colorHex(colorId: string): string {
   return CABLE_COLORS.find(c => c.id === colorId)?.hex ?? '#e07b39'
 }
 
-function JackCircle({
-  jack,
-  isPending,
-  isUsed,
-  isTargeting,
-  isSource,
-  activeCableColor,
-  onOutputClick,
-  onInputClick,
-}: {
-  jack: JackDef
-  isPending: boolean
-  isUsed: boolean
-  isTargeting: boolean
-  isSource: boolean
-  activeCableColor: string
-  onOutputClick: (id: string) => void
-  onInputClick: (id: string) => void
-}) {
-  const stroke = isPending
-    ? activeCableColor
-    : isTargeting && !isSource
-    ? activeCableColor
-    : isUsed
-    ? '#555'
-    : '#333'
-
-  return (
-    <g
-      key={jack.id}
-      data-testid={`jack-${jack.id}`}
-      onClick={() => (isSource ? onOutputClick(jack.id) : onInputClick(jack.id))}
-      style={{ cursor: isSource ? 'pointer' : isTargeting ? 'crosshair' : 'pointer' }}
-    >
-      <circle
-        cx={jack.x} cy={jack.y} r={8}
-        fill="#1a1a1a"
-        stroke={stroke}
-        strokeWidth={isPending ? 2 : 1.5}
-        strokeDasharray={!isSource && isTargeting ? '3,2' : undefined}
-      />
-      {isPending && (
-        <circle cx={jack.x} cy={jack.y} r={3.5} fill={activeCableColor} opacity={0.9} />
-      )}
-      <text x={jack.x} y={jack.y + 17} textAnchor="middle" fill="#555" fontSize="7">
-        {jack.label}
-      </text>
-    </g>
-  )
-}
+// Sort patch points by row then col for linear grid rendering
+const SORTED_POINTS = [...DFAM_PATCH_POINTS].sort(
+  (a, b) => a.row !== b.row ? a.row - b.row : a.col - b.col
+)
 
 export function PatchBay({ connections, onChange }: PatchBayProps) {
   const [pendingFrom, setPendingFrom] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState('orange')
   const [selectedCable, setSelectedCable] = useState<number | null>(null)
 
-  const handleOutputClick = useCallback((jackId: string) => {
-    setSelectedCable(null)
-    setPendingFrom(prev => (prev === jackId ? null : jackId))
-  }, [])
-
-  const handleInputClick = useCallback(
-    (jackId: string) => {
-      if (!pendingFrom) return
-      const exists = connections.some(c => c.fromJack === pendingFrom && c.toJack === jackId)
-      if (!exists) {
-        onChange([...connections, { fromJack: pendingFrom, toJack: jackId, color: selectedColor }])
+  const handleJackClick = useCallback(
+    (point: PatchPointDef) => {
+      setSelectedCable(null)
+      if (OUT_IDS.has(point.id)) {
+        setPendingFrom(prev => (prev === point.id ? null : point.id))
+      } else {
+        if (!pendingFrom) return
+        const exists = connections.some(c => c.fromJack === pendingFrom && c.toJack === point.id)
+        if (!exists) {
+          onChange([...connections, { fromJack: pendingFrom, toJack: point.id, color: selectedColor }])
+        }
+        setPendingFrom(null)
       }
-      setPendingFrom(null)
     },
     [pendingFrom, selectedColor, connections, onChange],
   )
-
-  const handleCableClick = useCallback((i: number) => {
-    setPendingFrom(null)
-    setSelectedCable(prev => (prev === i ? null : i))
-  }, [])
 
   const deleteSelectedCable = useCallback(() => {
     if (selectedCable === null) return
@@ -118,28 +53,12 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
     setSelectedCable(null)
   }, [selectedCable, connections, onChange])
 
-  const activeCableColor = colorHex(selectedColor)
   const isTargeting = !!pendingFrom
-
-  function jackProps(jack: JackDef) {
-    const isSource = SOURCE_IDS.has(jack.id)
-    return {
-      jack,
-      isPending: pendingFrom === jack.id,
-      isUsed: isSource
-        ? connections.some(c => c.fromJack === jack.id)
-        : connections.some(c => c.toJack === jack.id),
-      isTargeting,
-      isSource,
-      activeCableColor,
-      onOutputClick: handleOutputClick,
-      onInputClick: handleInputClick,
-    }
-  }
 
   return (
     <div className="space-y-3">
-      {/* Color picker */}
+
+      {/* Cable color picker */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Cable:</span>
         <div className="flex gap-1.5">
@@ -158,71 +77,69 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
         </div>
       </div>
 
-      {/* SVG patch bay */}
-      <div className="bg-[#0f0f0f] border border-zinc-800 rounded overflow-hidden">
-        <svg
-          width="100%"
-          viewBox="0 0 700 160"
-          className="block"
-          style={{ fontFamily: 'monospace' }}
-        >
-          <text x="4" y="32" fill="#3a3a3a" fontSize="8">OUT</text>
-          <text x="4" y="86" fill="#3a3a3a" fontSize="8">IN</text>
-          <text x="4" y="140" fill="#3a3a3a" fontSize="8">AUDIO</text>
+      {/* 8×3 patchbay grid */}
+      <div className="bg-[#0f0f0f] border border-zinc-800 rounded p-2">
+        <div className="grid grid-cols-3 gap-1">
+          {SORTED_POINTS.map(point => {
+            const isOut = OUT_IDS.has(point.id)
+            const isPending = pendingFrom === point.id
+            const isConnected = isOut
+              ? connections.some(c => c.fromJack === point.id)
+              : connections.some(c => c.toJack === point.id)
+            const connColor = isOut
+              ? connections.find(c => c.fromJack === point.id)?.color
+              : connections.find(c => c.toJack === point.id)?.color
+            const isClickable = isOut || (isTargeting && !isOut)
 
-          {/* Divider before audio row */}
-          <line x1="0" y1="112" x2="700" y2="112" stroke="#1e1e1e" strokeWidth="1" />
-
-          {/* Cables */}
-          {connections.map((conn, i) => {
-            const from = getJack(conn.fromJack)
-            const to = getJack(conn.toJack)
-            if (!from || !to) return null
-            const midY = (from.y + to.y) / 2 + 8
-            const hex = colorHex(conn.color)
-            const isSelected = selectedCable === i
             return (
-              <path
-                key={i}
-                data-cable
-                d={`M ${from.x},${from.y} C ${from.x},${midY} ${to.x},${midY} ${to.x},${to.y}`}
-                stroke={hex}
-                strokeWidth={isSelected ? 3 : 2}
-                fill="none"
-                strokeOpacity={isSelected ? 1 : 0.75}
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleCableClick(i)}
-              />
+              <button
+                key={point.id}
+                type="button"
+                data-testid={`jack-${point.id}`}
+                onClick={() => handleJackClick(point)}
+                className={`
+                  relative flex flex-col items-center justify-center py-2 px-1 rounded text-center
+                  border transition-all select-none
+                  ${isPending
+                    ? 'border-orange-500 bg-orange-950/30'
+                    : isTargeting && !isOut
+                    ? 'border-zinc-600 bg-zinc-900/50 hover:border-zinc-400 cursor-crosshair'
+                    : isConnected
+                    ? 'border-zinc-600 bg-zinc-900/30'
+                    : 'border-zinc-800 bg-zinc-900/20'
+                  }
+                  ${isClickable ? 'cursor-pointer hover:border-zinc-600' : 'cursor-default'}
+                `}
+              >
+                {/* Connection color dot */}
+                {(isConnected || isPending) && connColor && (
+                  <span
+                    className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: isPending ? colorHex(selectedColor) : colorHex(connColor) }}
+                  />
+                )}
+                {isPending && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-orange-500" />
+                )}
+                <span className={`text-[8px] font-mono font-bold uppercase leading-tight ${
+                  isOut ? 'text-orange-400/80' : 'text-zinc-400'
+                }`}>
+                  {point.label}
+                </span>
+                <span className={`text-[7px] font-mono mt-0.5 ${isOut ? 'text-orange-600/70' : 'text-zinc-600'}`}>
+                  {isOut ? '▲ out' : 'in ▼'}
+                </span>
+              </button>
             )
           })}
-
-          {/* CV Output jacks */}
-          {DFAM_JACKS.outputs.map(jack => (
-            <JackCircle key={jack.id} {...jackProps(jack)} />
-          ))}
-
-          {/* CV Input jacks */}
-          {DFAM_JACKS.inputs.map(jack => (
-            <JackCircle key={jack.id} {...jackProps(jack)} />
-          ))}
-
-          {/* Audio output jacks */}
-          {DFAM_JACKS.audioOutputs.map(jack => (
-            <JackCircle key={jack.id} {...jackProps(jack)} />
-          ))}
-
-          {/* Audio input jacks */}
-          {DFAM_JACKS.audioInputs.map(jack => (
-            <JackCircle key={jack.id} {...jackProps(jack)} />
-          ))}
-        </svg>
+        </div>
       </div>
 
-      {/* Status / actions */}
-      <div className="flex items-center gap-3 min-h-[24px]">
+      {/* Status */}
+      <div className="min-h-[20px]">
         {pendingFrom && (
           <p className="text-[10px] text-orange-400 font-mono">
-            Click an input jack to complete the connection
+            Click an input to complete — or click the same output to cancel
           </p>
         )}
         {selectedCable !== null && (
@@ -235,6 +152,38 @@ export function PatchBay({ connections, onChange }: PatchBayProps) {
           </button>
         )}
       </div>
+
+      {/* Cable list */}
+      {connections.length > 0 && (
+        <div className="space-y-1">
+          <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1">Cables</div>
+          {connections.map((conn, i) => {
+            const from = DFAM_PATCH_POINTS.find(p => p.id === conn.fromJack)
+            const to = DFAM_PATCH_POINTS.find(p => p.id === conn.toJack)
+            return (
+              <button
+                key={i}
+                type="button"
+                data-cable
+                onClick={() => {
+                  setPendingFrom(null)
+                  setSelectedCable(prev => (prev === i ? null : i))
+                }}
+                className={`w-full flex items-center gap-2 text-[10px] font-mono text-left px-2 py-1 rounded border transition-colors ${
+                  selectedCable === i
+                    ? 'border-red-900/60 bg-red-950/20 text-red-400'
+                    : 'border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex(conn.color) }} />
+                <span className="text-orange-400/70">{from?.label ?? conn.fromJack}</span>
+                <span className="text-zinc-700">→</span>
+                <span className="text-zinc-400">{to?.label ?? conn.toJack}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
