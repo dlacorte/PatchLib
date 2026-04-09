@@ -1,0 +1,69 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useState, useCallback } from 'react'
+import Link from 'next/link'
+import { PatchForm } from '@/components/patch-form/PatchForm'
+import type { PatchFormValues } from '@/lib/types'
+
+const emptyPatch: PatchFormValues = {
+  name: '',
+  description: '',
+  tags: [],
+  knobSettings: {},
+  connections: [],
+  sequenceNotes: '',
+  audioUrl: '',
+}
+
+export default function NewPatchPage() {
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = useCallback(async (values: PatchFormValues) => {
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      const knobSettings = Object.entries(values.knobSettings).map(([knobId, value]) => ({
+        knobId,
+        value,
+      }))
+      const res = await fetch('/api/patches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...values, knobSettings }),
+      })
+      if (!res.ok) throw new Error('Failed to save patch')
+      const patch = await res.json()
+      router.push(`/patches/${patch.id}`)
+    } catch {
+      setError('Something went wrong. Please try again.')
+      setIsSubmitting(false)
+    }
+  }, [router])
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <nav className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
+        <Link href="/" className="text-orange-500 font-mono font-bold tracking-[4px] text-sm">
+          PATCHLIB
+        </Link>
+        <span className="text-xs font-mono text-zinc-500">New Patch · DFAM</span>
+      </nav>
+
+      <main className="max-w-2xl mx-auto px-6 py-8">
+        {error && (
+          <div className="mb-6 text-red-400 text-sm font-mono border border-red-900/50 rounded px-4 py-2">
+            {error}
+          </div>
+        )}
+        <PatchForm
+          defaultValues={emptyPatch}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
+      </main>
+    </div>
+  )
+}
