@@ -1,35 +1,23 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { JetBrains_Mono } from 'next/font/google'
+import './globals.css'
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+})
 
 export const metadata: Metadata = {
-  title: "PatchLib",
-  description: "DFAM patch library",
-};
+  title: 'PatchLib',
+  description: 'Analog synthesizer patch library for DFAM',
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className="dark">
+      <body className={`${mono.variable} font-mono bg-[#0a0a0a] text-zinc-100 antialiased`}>
         {children}
       </body>
     </html>
-  );
+  )
 }

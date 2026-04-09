@@ -16,6 +16,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        mono: ['var(--font-mono)', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -49,6 +52,12 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        patch: {
+          orange: '#e07b39',
+          surface: '#111111',
+          surface2: '#161616',
+          border: '#2a2a2a',
         },
       },
       borderRadius: {
