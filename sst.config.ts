@@ -44,7 +44,10 @@ export default $config({
       domain: isProd
         ? {
             name: "patchlib.com",
-            dns: sst.aws.dns(),
+            // DNS stays at INWX (same pattern as daniellacorte.de).
+            // ACM cert validated via CNAME at INWX, no Route53 needed.
+            cert: "arn:aws:acm:us-east-1:317447425242:certificate/ed91190f-4e94-42cf-b17f-d316a1d9eb4e",
+            dns: false,
           }
         : undefined,
     });
