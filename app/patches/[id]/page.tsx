@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { DFAM_PATCH_POINTS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
 import { AudioPlayer } from '@/components/audio/AudioPlayer'
+import { auth } from '@/auth'
+import { CopyButton } from '@/components/auth/CopyButton'
 
 interface PageProps {
   params: { id: string }
@@ -14,12 +16,17 @@ function colorHex(colorId: string): string {
 }
 
 export default async function PatchDetailPage({ params }: PageProps) {
-  const patch = await prisma.patch.findUnique({
-    where: { id: params.id },
-    include: { knobSettings: true, connections: true },
-  })
+  const [patch, session] = await Promise.all([
+    prisma.patch.findUnique({
+      where: { id: params.id },
+      include: { knobSettings: true, connections: true },
+    }),
+    auth(),
+  ])
 
   if (!patch) notFound()
+  // Public-only — private patches return 404 to anyone who isn't the owner
+  if (!patch.isPublic && patch.userId !== session?.user?.id) notFound()
 
   const date = new Date(patch.createdAt).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -37,13 +44,34 @@ export default async function PatchDetailPage({ params }: PageProps) {
           PATCHLIB
         </Link>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/patches/${patch.id}/edit`}
-            className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1 hover:border-zinc-500 transition-colors"
-          >
-            Edit
-          </Link>
-          <DeletePatchButton patchId={patch.id} />
+          {/* Owner controls: edit + delete */}
+          {session?.user?.id === patch.userId && (
+            <>
+              <Link
+                href={`/library/${patch.id}/edit`}
+                className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1 hover:border-zinc-500 transition-colors"
+              >
+                Edit
+              </Link>
+              <DeletePatchButton patchId={patch.id} />
+            </>
+          )}
+          {/* Copy button — shown on public patches not owned by current user */}
+          {patch.isPublic && session?.user?.id !== patch.userId && (
+            <CopyButton
+              patchId={patch.id}
+              className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1 hover:border-zinc-500 transition-colors"
+            />
+          )}
+          {/* Sign in — shown to guests on public patches */}
+          {!session && patch.isPublic && (
+            <Link
+              href={`/login?callbackUrl=/patches/${patch.id}`}
+              className="bg-orange-500 hover:bg-orange-400 text-black font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -129,6 +157,18 @@ export default async function PatchDetailPage({ params }: PageProps) {
               filename={patch.audioUrl.split('/').pop()}
             />
           </section>
+        )}
+
+        {/* Copy banner — shown on public patches not owned by current user */}
+        {patch.isPublic && session?.user?.id !== patch.userId && (
+          <div className="flex items-center justify-between bg-[#111] border border-zinc-800 rounded px-4 py-3">
+            <span className="text-xs font-mono text-zinc-500">Save this patch to your library</span>
+            <CopyButton
+              patchId={patch.id}
+              label="Copy to my library"
+              className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1.5 hover:border-zinc-500 transition-colors"
+            />
+          </div>
         )}
       </main>
     </div>
