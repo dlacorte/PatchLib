@@ -10,6 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Email({
+      server: process.env.EMAIL_SERVER ?? 'smtp://localhost:25',
       from: process.env.AUTH_EMAIL_FROM!,
       sendVerificationRequest: async ({ identifier: email, url }) => {
         await ses.send(

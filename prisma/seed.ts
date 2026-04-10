@@ -9,11 +9,22 @@ async function main() {
   await prisma.knobSetting.deleteMany()
   await prisma.patch.deleteMany()
 
+  // ── Seed user ─────────────────────────────────────────────────────────────
+  const seedUser = await prisma.user.upsert({
+    where: { email: 'seed@patchlib.dev' },
+    update: {},
+    create: {
+      email: 'seed@patchlib.dev',
+      displayName: 'PatchLib Seed',
+    },
+  })
+
   // ── PATCH 1: Heavy Kick ───────────────────────────────────────────────────
   // Classic punchy kick. VCO1 low + triangle, fast pitch drop via EG,
   // short filter + VCA envelope, trigger routed to VCA CV for extra punch.
   const heavyKick = await prisma.patch.create({
     data: {
+      userId: seedUser.id,
       name: 'Heavy Kick',
       device: 'DFAM',
       description: 'Deep punchy kick with fast pitch sweep and tight VCA decay. VCO1 in triangle, pitch drops via EG on hit.',
@@ -83,6 +94,7 @@ async function main() {
   // VCO2 audio routed into FM input for extra harmonic dirt.
   const squelchAcid = await prisma.patch.create({
     data: {
+      userId: seedUser.id,
       name: 'Squelch Acid',
       device: 'DFAM',
       description: 'Classic acid bassline texture. Square waves, high resonance, VCO2 self-patched into 1-2 FM for extra grit. Vary VCF cutoff live.',
@@ -154,6 +166,7 @@ async function main() {
   // VCO1 audio into VCF MOD for slow filter movement.
   const darkDrone = await prisma.patch.create({
     data: {
+      userId: seedUser.id,
       name: 'Dark Drone',
       device: 'DFAM',
       description: 'Slow evolving drone. VCOs detuned against each other, VCO1 audio modulates filter for organic movement. VCA EG on SLOW for long fades.',
