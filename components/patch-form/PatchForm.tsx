@@ -5,6 +5,7 @@ import type { PatchFormValues, ConnectionFormValue } from '@/lib/types'
 import { KnobGrid } from '@/components/dfam/KnobGrid'
 import { PatchBay } from '@/components/dfam/PatchBay'
 import { AudioUpload } from '@/components/audio/AudioUpload'
+import { VisibilityToggle } from '@/components/ui/VisibilityToggle'
 
 interface PatchFormProps {
   defaultValues: PatchFormValues
@@ -20,6 +21,7 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
   const [connections, setConnections] = useState<ConnectionFormValue[]>(defaultValues.connections)
   const [sequenceNotes, setSequenceNotes] = useState(defaultValues.sequenceNotes)
   const [audioUrl, setAudioUrl] = useState(defaultValues.audioUrl)
+  const [isPublic, setIsPublic] = useState(defaultValues.isPublic ?? false)
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -28,9 +30,9 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
         .split(',')
         .map(t => t.trim().toLowerCase())
         .filter(Boolean)
-      onSubmit({ name, description, tags, knobSettings, connections, sequenceNotes, audioUrl })
+      onSubmit({ name, description, tags, knobSettings, connections, sequenceNotes, audioUrl, isPublic })
     },
-    [name, description, tagsInput, knobSettings, connections, sequenceNotes, audioUrl, onSubmit],
+    [name, description, tagsInput, knobSettings, connections, sequenceNotes, audioUrl, isPublic, onSubmit],
   )
 
   return (
@@ -62,6 +64,7 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
           placeholder="Tags (comma separated): bass, kick, drone…"
           className="w-full bg-[#111] border border-zinc-800 rounded px-3 py-2 text-sm font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
         />
+        <VisibilityToggle value={isPublic} onChange={setIsPublic} />
       </section>
 
       {/* Sound Engine + Patch Bay: side by side on wide screens */}

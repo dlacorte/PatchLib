@@ -1,5 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { PatchForm } from '@/components/patch-form/PatchForm'
+import { VisibilityToggle } from '@/components/ui/VisibilityToggle'
 import type { PatchFormValues } from '@/lib/types'
 
 // Mock heavy child components to keep tests fast
@@ -23,6 +25,7 @@ const defaultValues: PatchFormValues = {
   connections: [],
   sequenceNotes: '',
   audioUrl: '',
+  isPublic: false,
 }
 
 describe('PatchForm', () => {
@@ -47,5 +50,25 @@ describe('PatchForm', () => {
     fireEvent.change(screen.getByPlaceholderText(/patch name/i), { target: { value: 'My Patch' } })
     fireEvent.click(screen.getByText(/save patch/i))
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Patch' }))
+  })
+})
+
+describe('VisibilityToggle', () => {
+  it('shows "private" when value is false', () => {
+    render(<VisibilityToggle value={false} onChange={() => {}} />)
+    expect(screen.getByText('private')).toBeInTheDocument()
+  })
+
+  it('shows "public" when value is true', () => {
+    render(<VisibilityToggle value={true} onChange={() => {}} />)
+    expect(screen.getByText('public')).toBeInTheDocument()
+  })
+
+  it('calls onChange with toggled value on click', async () => {
+    const onChange = jest.fn()
+    const user = userEvent.setup()
+    render(<VisibilityToggle value={false} onChange={onChange} />)
+    await user.click(screen.getByRole('button'))
+    expect(onChange).toHaveBeenCalledWith(true)
   })
 })
