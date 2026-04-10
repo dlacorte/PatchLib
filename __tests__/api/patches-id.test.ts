@@ -17,6 +17,11 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/auth', () => ({
+  auth: jest.fn(),
+}))
+import { auth as mockAuth } from '@/auth'
+
 const params = { params: { id: 'cltest123' } }
 
 const fullPatch = {
@@ -30,6 +35,8 @@ const fullPatch = {
   sequenceNotes: null,
   audioUrl: null,
   photoUrl: null,
+  isPublic: false,
+  userId: 'u1',
   knobSettings: [],
   connections: [],
 }
@@ -55,7 +62,11 @@ describe('GET /api/patches/[id]', () => {
 })
 
 describe('PUT /api/patches/[id]', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'u1' } })
+    ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue(fullPatch)
+  })
 
   it('replaces patch and returns updated', async () => {
     ;(prisma.knobSetting.deleteMany as jest.Mock).mockResolvedValue({})
@@ -77,15 +88,47 @@ describe('PUT /api/patches/[id]', () => {
     const res = await PUT(req, params)
     expect(res.status).toBe(400)
   })
+
+  it('returns 401 when no session', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue(null)
+    const req = new NextRequest('http://localhost/api/patches/cltest123', {
+      method: 'PUT',
+      body: JSON.stringify({ name: 'Updated' }),
+    })
+    const res = await PUT(req, { params: { id: 'cltest123' } })
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when user does not own the patch', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'other-user' } })
+    ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue({ ...fullPatch, userId: 'u1' })
+    const req = new NextRequest('http://localhost/api/patches/cltest123', {
+      method: 'PUT',
+      body: JSON.stringify({ name: 'Updated' }),
+    })
+    const res = await PUT(req, { params: { id: 'cltest123' } })
+    expect(res.status).toBe(403)
+  })
 })
 
 describe('DELETE /api/patches/[id]', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'u1' } })
+    ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue(fullPatch)
+  })
 
   it('deletes patch and returns 204', async () => {
     ;(prisma.patch.delete as jest.Mock).mockResolvedValue({})
     const req = new NextRequest('http://localhost/api/patches/cltest123', { method: 'DELETE' })
     const res = await DELETE(req, params)
     expect(res.status).toBe(204)
+  })
+
+  it('returns 403 when user does not own the patch', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'other-user' } })
+    ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue({ ...fullPatch, userId: 'u1' })
+    const res = await DELETE(new NextRequest('http://localhost/api/patches/cltest123'), { params: { id: 'cltest123' } })
+    expect(res.status).toBe(403)
   })
 })

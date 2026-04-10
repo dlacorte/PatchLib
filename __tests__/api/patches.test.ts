@@ -14,6 +14,11 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/auth', () => ({
+  auth: jest.fn(),
+}))
+import { auth as mockAuth } from '@/auth'
+
 const mockPatch = {
   id: 'cltest123',
   name: 'Test Patch',
@@ -29,7 +34,10 @@ const mockPatch = {
 }
 
 describe('GET /api/patches', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'u1', email: 'test@test.com' } })
+  })
 
   it('returns list of patches as JSON', async () => {
     ;(prisma.patch.findMany as jest.Mock).mockResolvedValue([mockPatch])
@@ -56,10 +64,20 @@ describe('GET /api/patches', () => {
     const call = (prisma.patch.findMany as jest.Mock).mock.calls[0][0]
     expect(JSON.stringify(call.where)).toContain('bass')
   })
+
+  it('returns 401 when no session', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue(null)
+    const req = new NextRequest('http://localhost/api/patches')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+  })
 })
 
 describe('POST /api/patches', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'u1', email: 'test@test.com' } })
+  })
 
   it('creates a patch and returns 201', async () => {
     ;(prisma.patch.create as jest.Mock).mockResolvedValue({ ...mockPatch, _count: undefined })
@@ -88,5 +106,15 @@ describe('POST /api/patches', () => {
     })
     const res = await POST(req)
     expect(res.status).toBe(400)
+  })
+
+  it('returns 401 when no session', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue(null)
+    const req = new NextRequest('http://localhost/api/patches', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test' }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
   })
 })

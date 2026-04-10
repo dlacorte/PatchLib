@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,12 +16,23 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const existing = await prisma.patch.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.userId !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const body = await req.json().catch(() => null)
   if (!body?.name) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl } = body
+  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic } = body
 
   await prisma.knobSetting.deleteMany({ where: { patchId: params.id } })
   await prisma.cableConnection.deleteMany({ where: { patchId: params.id } })
@@ -35,6 +47,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       sequenceNotes: sequenceNotes || null,
       audioUrl: audioUrl || null,
       photoUrl: photoUrl || null,
+      isPublic: isPublic ?? existing.isPublic,
       knobSettings: {
         create: (knobSettings || []).map((k: { knobId: string; value: number }) => ({
           knobId: k.knobId,
@@ -56,6 +69,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const existing = await prisma.patch.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.userId !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   await prisma.patch.delete({ where: { id: params.id } })
   return new NextResponse(null, { status: 204 })
 }

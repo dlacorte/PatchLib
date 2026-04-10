@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search') || ''
   const tagsParam = searchParams.get('tags') || ''
@@ -31,13 +37,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null)
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  const body = await req.json().catch(() => null)
   if (!body?.name) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl } = body
+  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic } = body
 
   const patch = await prisma.patch.create({
     data: {
@@ -48,6 +58,8 @@ export async function POST(req: NextRequest) {
       sequenceNotes: sequenceNotes || null,
       audioUrl: audioUrl || null,
       photoUrl: photoUrl || null,
+      isPublic: isPublic ?? false,
+      userId: session.user.id,
       knobSettings: {
         create: (knobSettings || []).map((k: { knobId: string; value: number }) => ({
           knobId: k.knobId,
