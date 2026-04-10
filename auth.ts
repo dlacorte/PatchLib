@@ -4,7 +4,15 @@ import Email from 'next-auth/providers/email'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { prisma } from '@/lib/prisma'
 
-const ses = new SESClient({ region: process.env.AWS_REGION ?? 'us-east-1' })
+const ses = new SESClient({
+  region: process.env.AWS_REGION ?? process.env.AUDIO_AWS_REGION ?? 'us-east-1',
+  credentials: process.env.AUDIO_AWS_ACCESS_KEY_ID
+    ? {
+        accessKeyId: process.env.AUDIO_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AUDIO_AWS_SECRET_ACCESS_KEY!,
+      }
+    : undefined,
+})
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
