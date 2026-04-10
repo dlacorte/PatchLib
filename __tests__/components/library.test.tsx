@@ -21,7 +21,10 @@ const mockPatch = {
   sequenceNotes: null,
   audioUrl: null,
   photoUrl: null,
+  isPublic: false,
+  userId: 'u1',
   _count: { connections: 2 },
+  user: { displayName: null, email: 'test@test.com' },
 }
 
 describe('PatchCard', () => {
@@ -53,6 +56,30 @@ describe('PatchCard', () => {
   it('does not show ♪ indicator when patch has no audio', () => {
     render(<PatchCard patch={{ ...mockPatch, audioUrl: null }} />)
     expect(screen.queryByText('♪')).not.toBeInTheDocument()
+  })
+})
+
+describe('PatchCard — discovery variant', () => {
+  it('shows owner label "by janko" when displayName is set', () => {
+    render(<PatchCard patch={{ ...mockPatch, user: { displayName: 'janko', email: 'janko@test.com' } }} variant="discovery" />)
+    expect(screen.getByText(/by janko/i)).toBeInTheDocument()
+  })
+
+  it('falls back to email prefix when displayName is null', () => {
+    render(<PatchCard patch={{ ...mockPatch, user: { displayName: null, email: 'someone@test.com' } }} variant="discovery" />)
+    expect(screen.getByText(/by someone/i)).toBeInTheDocument()
+  })
+})
+
+describe('PatchCard — library variant', () => {
+  it('shows "public" badge when isPublic is true', () => {
+    render(<PatchCard patch={{ ...mockPatch, isPublic: true }} variant="library" />)
+    expect(screen.getByText('public')).toBeInTheDocument()
+  })
+
+  it('shows "private" badge when isPublic is false', () => {
+    render(<PatchCard patch={{ ...mockPatch, isPublic: false }} variant="library" />)
+    expect(screen.getByText('private')).toBeInTheDocument()
   })
 })
 
