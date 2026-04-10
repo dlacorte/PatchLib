@@ -3,6 +3,7 @@ import type { NextAuthConfig } from 'next-auth'
 // Lightweight config used by middleware (Edge-compatible — no Prisma, no SES).
 // Full config with PrismaAdapter + SES is in auth.ts.
 export const authConfig: NextAuthConfig = {
+  session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
