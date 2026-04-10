@@ -16,24 +16,31 @@ export default $config({
     const authSecret = new sst.Secret("AuthSecret");
     const authEmailFrom = new sst.Secret("AuthEmailFrom");
     const databaseUrl = new sst.Secret("DatabaseUrl");
+    // Existing S3 bucket — managed outside SST (created with the app)
     const audioBucketName = new sst.Secret("AudioBucketName");
-    const audioAwsRegion = new sst.Secret("AudioAwsRegion");
-    const audioAwsAccessKeyId = new sst.Secret("AudioAwsAccessKeyId");
-    const audioAwsSecretAccessKey = new sst.Secret("AudioAwsSecretAccessKey");
 
     const isProd = $app.stage === "production";
 
     const site = new sst.aws.Nextjs("PatchLib", {
+      buildCommand: "npm run build",
+      openNextVersion: "3.5.4",
       environment: {
         AUTH_SECRET: authSecret.value,
-        AUTH_URL: isProd ? "https://patchlib.app" : "",
+        AUTH_URL: isProd ? "https://patchlib.app" : undefined,
         AUTH_EMAIL_FROM: authEmailFrom.value,
         DATABASE_URL: databaseUrl.value,
         AUDIO_BUCKET_NAME: audioBucketName.value,
-        AUDIO_AWS_REGION: audioAwsRegion.value,
-        AUDIO_AWS_ACCESS_KEY_ID: audioAwsAccessKeyId.value,
-        AUDIO_AWS_SECRET_ACCESS_KEY: audioAwsSecretAccessKey.value,
       },
+      permissions: [
+        {
+          actions: ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+          resources: ["arn:aws:s3:::*"],
+        },
+        {
+          actions: ["ses:SendEmail", "ses:SendRawEmail"],
+          resources: ["*"],
+        },
+      ],
       domain: isProd
         ? {
             name: "patchlib.app",
