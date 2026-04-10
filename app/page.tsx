@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { PatchCard } from '@/components/library/PatchCard'
 import { SearchBar } from '@/components/library/SearchBar'
 import { TagFilter } from '@/components/library/TagFilter'
+import { Nav } from '@/components/layout/Nav'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -15,6 +15,7 @@ async function PatchList({ search, activeTags }: { search: string; activeTags: s
   const { prisma } = await import('@/lib/prisma')
   const patches = await prisma.patch.findMany({
     where: {
+      isPublic: true,
       AND: [
         search
           ? {
@@ -27,17 +28,17 @@ async function PatchList({ search, activeTags }: { search: string; activeTags: s
         activeTags.length > 0 ? { tags: { hasSome: activeTags } } : {},
       ],
     },
-    include: { _count: { select: { connections: true } } },
+    include: {
+      _count: { select: { connections: true } },
+      user: { select: { displayName: true, email: true } },
+    },
     orderBy: { createdAt: 'desc' },
   })
 
   if (patches.length === 0) {
     return (
       <p className="text-zinc-600 text-sm font-mono py-12 text-center">
-        No patches found.{' '}
-        <Link href="/patches/new" className="text-orange-500 hover:text-orange-400">
-          Create one?
-        </Link>
+        No public patches yet.
       </p>
     )
   }
@@ -45,34 +46,29 @@ async function PatchList({ search, activeTags }: { search: string; activeTags: s
   return (
     <div className="space-y-2">
       {patches.map(patch => (
-        <PatchCard key={patch.id} patch={patch} />
+        <PatchCard key={patch.id} patch={patch} variant="discovery" />
       ))}
     </div>
   )
 }
 
-async function getAllTags(): Promise<string[]> {
+async function getAllPublicTags(): Promise<string[]> {
   const { prisma } = await import('@/lib/prisma')
-  const patches = await prisma.patch.findMany({ select: { tags: true } })
+  const patches = await prisma.patch.findMany({
+    where: { isPublic: true },
+    select: { tags: true },
+  })
   return Array.from(new Set(patches.flatMap(p => p.tags))).sort()
 }
 
-export default async function LibraryPage({ searchParams }: PageProps) {
+export default async function DiscoveryPage({ searchParams }: PageProps) {
   const search = searchParams.search || ''
   const activeTags = searchParams.tags?.split(',').filter(Boolean) || []
-  const allTags = await getAllTags()
+  const allTags = await getAllPublicTags()
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <nav className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
-        <span className="text-orange-500 font-mono font-bold tracking-[4px] text-sm">PATCHLIB</span>
-        <Link
-          href="/patches/new"
-          className="bg-orange-500 hover:bg-orange-400 text-black font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
-        >
-          + NEW PATCH
-        </Link>
-      </nav>
+      <Nav activePage="browse" />
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
         <Suspense>
