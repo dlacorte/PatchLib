@@ -11,6 +11,7 @@ export type PatchWithRelations = Patch & {
 
 export type PatchListItem = Patch & {
   _count: { connections: number }
+  user: { displayName: string | null; email: string }
 }
 
 // Shape used in the create/edit form — before saving to DB
@@ -22,6 +23,7 @@ export interface PatchFormValues {
   connections: ConnectionFormValue[]
   sequenceNotes: string
   audioUrl: string
+  isPublic: boolean
 }
 
 export interface ConnectionFormValue {
