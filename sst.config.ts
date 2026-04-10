@@ -22,7 +22,8 @@ export default $config({
     const isProd = $app.stage === "production";
 
     const site = new sst.aws.Nextjs("PatchLib", {
-      buildCommand: "npm run build",
+      // Run prisma generate before open-next build (which calls next build internally)
+      buildCommand: "npx prisma generate && npx open-next@3.5.4 build",
       openNextVersion: "3.5.4",
       environment: {
         AUTH_SECRET: authSecret.value,
