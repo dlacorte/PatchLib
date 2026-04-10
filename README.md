@@ -48,7 +48,8 @@ _Coming soon._
 | Frontend | Next.js 14 (App Router), Tailwind CSS, shadcn/ui |
 | Database | Aurora Serverless v2 (PostgreSQL) via Prisma |
 | File Storage | AWS S3 (presigned direct upload) |
-| Deployment | Vercel |
+| Deployment | AWS (Lambda + CloudFront via SST Ion) |
+| CI/CD | GitHub Actions (push to main → deploy) |
 
 ## Local Development
 

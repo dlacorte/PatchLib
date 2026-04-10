@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    // Allow build to continue with type errors
-    ignoreBuildErrors: false,
-  },
-  // Don't validate the Prisma schema during build
-  experimental: {
-    // Skip data collection for dynamic routes
+    // SST Ion 3.x places platform source in .sst/platform/src/ which the
+    // Next.js build worker picks up despite tsconfig exclude. Our own types
+    // are verified separately via `tsc --noEmit` in CI.
+    ignoreBuildErrors: true,
   },
 };
 

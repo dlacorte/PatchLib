@@ -1,0 +1,56 @@
+/// <reference path="./.sst/platform/config.d.ts" />
+
+export default $config({
+  app(input) {
+    return {
+      name: "patchlib",
+      removal: input?.stage === "production" ? "retain" : "remove",
+      home: "aws",
+      providers: {
+        aws: { region: "us-east-1" },
+      },
+    };
+  },
+  async run() {
+    // Secrets — set with: npx sst secret set <Name> <value> --stage production
+    const authSecret = new sst.Secret("AuthSecret");
+    const authEmailFrom = new sst.Secret("AuthEmailFrom");
+    const databaseUrl = new sst.Secret("DatabaseUrl");
+    // Existing S3 bucket — managed outside SST (created with the app)
+    const audioBucketName = new sst.Secret("AudioBucketName");
+
+    const isProd = $app.stage === "production";
+
+    const site = new sst.aws.Nextjs("PatchLib", {
+      // SST auto-detects @opennextjs/aws@3.6.6 for Next.js 14.
+      // OpenNext calls `npm run build` internally → prisma generate runs automatically.
+      environment: {
+        AUTH_SECRET: authSecret.value,
+        AUTH_URL: isProd ? "https://patchlib.com" : undefined,
+        AUTH_EMAIL_FROM: authEmailFrom.value,
+        DATABASE_URL: databaseUrl.value,
+        AUDIO_BUCKET_NAME: audioBucketName.value,
+      },
+      permissions: [
+        {
+          actions: ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+          resources: ["arn:aws:s3:::*"],
+        },
+        {
+          actions: ["ses:SendEmail", "ses:SendRawEmail"],
+          resources: ["*"],
+        },
+      ],
+      domain: isProd
+        ? {
+            name: "patchlib.com",
+            dns: sst.aws.dns(),
+          }
+        : undefined,
+    });
+
+    return {
+      url: site.url,
+    };
+  },
+});
