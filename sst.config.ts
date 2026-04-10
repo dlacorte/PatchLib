@@ -26,7 +26,7 @@ export default $config({
       // OpenNext calls `npm run build` internally → prisma generate runs automatically.
       environment: {
         AUTH_SECRET: authSecret.value,
-        AUTH_URL: isProd ? "https://patchlib.app" : undefined,
+        AUTH_URL: isProd ? "https://patchlib.com" : undefined,
         AUTH_EMAIL_FROM: authEmailFrom.value,
         DATABASE_URL: databaseUrl.value,
         AUDIO_BUCKET_NAME: audioBucketName.value,
@@ -43,7 +43,7 @@ export default $config({
       ],
       domain: isProd
         ? {
-            name: "patchlib.app",
+            name: "patchlib.com",
             dns: sst.aws.dns(),
           }
         : undefined,
