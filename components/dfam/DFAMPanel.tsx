@@ -34,6 +34,7 @@ const JACK_LABEL_OVERRIDES: Record<string, string> = {
   tempo_in: 'TEMPO →',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function DFAMPanel({ values, onChange, connections, onConnectionsChange: _onConnectionsChange }: DFAMPanelProps) {
   const [triggerActive, setTriggerActive] = useState(false)
   const [runStop, setRunStop] = useState(false)
