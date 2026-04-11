@@ -57,7 +57,6 @@ model VerificationToken {
 model Patch {
   id            String            @id @default(cuid())
   name          String
-  device        String            @default("DFAM")
   devices       String[]          @default([])
   description   String?
   tags          String[]
