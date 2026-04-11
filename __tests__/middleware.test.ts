@@ -2,41 +2,26 @@
  * @jest-environment node
  */
 
-// Middleware depends on the Auth.js request extension.
-// We test the redirect logic with a minimal mock.
-
-jest.mock('@/auth', () => ({
-  auth: jest.fn(),
-}))
-
 import { NextRequest } from 'next/server'
+import { middleware, config } from '@/middleware'
 
 describe('middleware', () => {
-  beforeEach(() => jest.resetModules())
-
-  it('redirects unauthenticated requests to /library to /login', async () => {
-    // After resetModules, re-require auth mock from the fresh registry and configure it
-    const { auth: freshAuthMock } = await import('@/auth')
-    ;(freshAuthMock as jest.Mock).mockImplementation((fn: Function) => {
-      // auth(handler) in Auth.js returns a middleware function — mock must do the same
-      return async (req: NextRequest) => {
-        ;(req as any).auth = null
-        return fn(req)
-      }
-    })
-    const { default: middleware } = await import('@/middleware')
-    const result = await (middleware as any)(new NextRequest('http://localhost/library'))
-    // Auth.js wraps the handler — we verify the mock was called
-    expect(freshAuthMock).toHaveBeenCalled()
+  it('redirects to /login when no session cookie is present', () => {
+    const req = new NextRequest('http://localhost/library')
+    const res = middleware(req)
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/login')
   })
 
-  it('exports a config matcher for /library paths', async () => {
-    // Ensure auth returns something callable so middleware can export
-    const { auth: freshAuthMock } = await import('@/auth')
-    ;(freshAuthMock as jest.Mock).mockImplementation((fn: Function) => {
-      return async (req: NextRequest) => fn(req)
+  it('allows request through when session cookie is present', () => {
+    const req = new NextRequest('http://localhost/library', {
+      headers: { cookie: 'authjs.session-token=abc123' },
     })
-    const { config } = await import('@/middleware')
+    const res = middleware(req)
+    expect(res.status).toBe(200)
+  })
+
+  it('exports a config matcher for /library paths', () => {
     expect(config.matcher).toContain('/library/:path*')
   })
 })
