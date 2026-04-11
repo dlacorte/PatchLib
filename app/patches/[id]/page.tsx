@@ -1,18 +1,23 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { DFAM_PATCH_POINTS, CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
+import { CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
 import { AudioPlayer } from '@/components/audio/AudioPlayer'
 import { auth } from '@/auth'
 import { CopyButton } from '@/components/auth/CopyButton'
+import { DFAMPanelStatic } from '@/components/dfam/DFAMPanelStatic'
 
 interface PageProps {
   params: { id: string }
 }
 
-function colorHex(colorId: string): string {
-  return CABLE_COLORS.find(c => c.id === colorId)?.hex ?? '#e07b39'
+const SECTION_LABELS: Record<string, string> = {
+  pitch_fm_sync: 'VCO / Pitch / FM',
+  wave_mixer:    'Wave / Mixer',
+  filter:        'Filter',
+  mod_vca:       'VCA / Output',
+  sequencer:     'Sequencer',
 }
 
 export default async function PatchDetailPage({ params }: PageProps) {
@@ -25,17 +30,26 @@ export default async function PatchDetailPage({ params }: PageProps) {
   ])
 
   if (!patch) notFound()
-  // Public-only — private patches return 404 to anyone who isn't the owner
   if (!patch.isPublic && patch.userId !== session?.user?.id) notFound()
 
   const date = new Date(patch.createdAt).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
 
-  const knobMap = Object.fromEntries(patch.knobSettings.map(k => [k.knobId, k.value]))
-  const displayKnobs = DFAM_KNOBS.filter(
-    def => knobMap[def.id] !== undefined && knobMap[def.id] !== def.defaultValue,
+  // Build values map for DFAMPanel
+  const values: Record<string, number> = Object.fromEntries(
+    patch.knobSettings.map(k => [k.knobId, k.value])
   )
+
+  // Build connections for DFAMPanel
+  const connections = patch.connections.map(c => ({
+    fromJack: c.fromJack,
+    toJack: c.toJack,
+    color: c.color,
+  }))
+
+  // Group knobs by section for the table
+  const sections = Object.keys(SECTION_LABELS) as (keyof typeof SECTION_LABELS)[]
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -44,7 +58,6 @@ export default async function PatchDetailPage({ params }: PageProps) {
           PATCHLIB
         </Link>
         <div className="flex items-center gap-2">
-          {/* Owner controls: edit + delete */}
           {session?.user?.id === patch.userId && (
             <>
               <Link
@@ -56,14 +69,12 @@ export default async function PatchDetailPage({ params }: PageProps) {
               <DeletePatchButton patchId={patch.id} />
             </>
           )}
-          {/* Copy button — shown on public patches not owned by current user */}
           {patch.isPublic && session?.user?.id !== patch.userId && (
             <CopyButton
               patchId={patch.id}
               className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1 hover:border-zinc-500 transition-colors"
             />
           )}
-          {/* Sign in — shown to guests on public patches */}
           {!session && patch.isPublic && (
             <Link
               href={`/login?callbackUrl=/patches/${patch.id}`}
@@ -75,9 +86,9 @@ export default async function PatchDetailPage({ params }: PageProps) {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+      <main className="py-8 space-y-8">
         {/* Header */}
-        <div>
+        <div className="max-w-3xl mx-auto px-6">
           <h1 className="text-2xl font-mono font-bold text-zinc-100 mb-1">{patch.name}</h1>
           <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500">
             <span className="border border-zinc-700 rounded px-1.5 py-0.5">{patch.device}</span>
@@ -97,58 +108,56 @@ export default async function PatchDetailPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Knob settings */}
-        {displayKnobs.length > 0 && (
-          <section>
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-              Knob Settings
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {displayKnobs.map(def => (
-                <div key={def.id} className="flex items-center justify-between bg-[#111] border border-zinc-800 rounded px-3 py-2">
-                  <span className="text-[11px] font-mono text-zinc-500">{def.label}</span>
-                  <span className="text-sm font-mono font-bold text-orange-400">
-                    {knobMap[def.id].toFixed(1)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* DFAM Panel — full width */}
+        <div className="px-6">
+          <DFAMPanelStatic values={values} connections={connections} />
+        </div>
 
-        {/* Patch bay connections */}
-        {patch.connections.length > 0 && (
-          <section>
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-              Patch Bay · {patch.connections.length} cable{patch.connections.length !== 1 ? 's' : ''}
-            </div>
-            <div className="space-y-1.5">
-              {patch.connections.map((conn, i) => {
-                const from = DFAM_PATCH_POINTS.find(p => p.id === conn.fromJack)
-                const to = DFAM_PATCH_POINTS.find(p => p.id === conn.toJack)
-                return (
-                  <div key={i} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500">
-                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex(conn.color) }} />
-                    <span className="text-orange-400/70">{from?.label ?? conn.fromJack}</span>
-                    <span className="text-zinc-700">→</span>
-                    <span>{to?.label ?? conn.toJack}</span>
+        {/* Knob table */}
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+            Knob Settings
+          </div>
+          <div className="space-y-6">
+            {sections.map(section => {
+              const sectionKnobs = DFAM_KNOBS.filter(k => k.section === section && values[k.id] !== undefined)
+              if (sectionKnobs.length === 0) return null
+              return (
+                <div key={section}>
+                  <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-2">
+                    {SECTION_LABELS[section]}
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
+                  <table className="w-full text-xs font-mono">
+                    <tbody>
+                      {sectionKnobs.map(knob => (
+                        <tr key={knob.id} className="border-b border-zinc-900">
+                          <td className="py-1.5 text-zinc-500">{knob.label}</td>
+                          <td className="py-1.5 text-right text-orange-400 font-bold">
+                            {knob.type === 'switch'
+                              ? (knob.options?.[values[knob.id]] ?? values[knob.id])
+                              : values[knob.id].toFixed(1)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })}
+          </div>
+        </div>
 
         {/* Notes */}
         {patch.sequenceNotes && (
-          <section>
+          <div className="max-w-3xl mx-auto px-6">
             <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">Notes</div>
             <p className="text-sm font-mono text-zinc-400 whitespace-pre-wrap leading-relaxed">{patch.sequenceNotes}</p>
-          </section>
+          </div>
         )}
 
+        {/* Audio */}
         {patch.audioUrl && (
-          <section>
+          <div className="max-w-3xl mx-auto px-6">
             <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3">
               Audio
             </div>
@@ -156,18 +165,20 @@ export default async function PatchDetailPage({ params }: PageProps) {
               src={patch.audioUrl}
               filename={patch.audioUrl.split('/').pop()}
             />
-          </section>
+          </div>
         )}
 
-        {/* Copy banner — shown on public patches not owned by current user */}
+        {/* Copy banner */}
         {patch.isPublic && session?.user?.id !== patch.userId && (
-          <div className="flex items-center justify-between bg-[#111] border border-zinc-800 rounded px-4 py-3">
-            <span className="text-xs font-mono text-zinc-500">Save this patch to your library</span>
-            <CopyButton
-              patchId={patch.id}
-              label="Copy to my library"
-              className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1.5 hover:border-zinc-500 transition-colors"
-            />
+          <div className="max-w-3xl mx-auto px-6">
+            <div className="flex items-center justify-between bg-[#111] border border-zinc-800 rounded px-4 py-3">
+              <span className="text-xs font-mono text-zinc-500">Save this patch to your library</span>
+              <CopyButton
+                patchId={patch.id}
+                label="Copy to my library"
+                className="text-xs font-mono text-zinc-400 border border-zinc-700 rounded px-3 py-1.5 hover:border-zinc-500 transition-colors"
+              />
+            </div>
           </div>
         )}
       </main>
