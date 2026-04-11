@@ -1,4 +1,4 @@
-import { DFAM_PATCH_POINTS, CABLE_COLORS, getJackCoords } from '@/lib/dfam'
+import { DFAM_PATCH_POINTS, CABLE_COLORS, getJackCoords, PANEL_HEIGHT } from '@/lib/dfam'
 import { prefixJackId, parseJackId } from '@/lib/devices'
 
 interface Connection {
@@ -74,7 +74,10 @@ export function CableSVG({
         if (!fromParsed || !toParsed) return null
         const fromPoint = DFAM_PATCH_POINTS.find(p => p.id === fromParsed.jackId)
         const toPoint = DFAM_PATCH_POINTS.find(p => p.id === toParsed.jackId)
-        if (!fromPoint || !toPoint) return null
+        if (!fromPoint || !toPoint) {
+          console.warn('[CableSVG] Unknown jack id in connection:', conn)
+          return null
+        }
 
         const { x: x1, y: y1 } = getJackCoords(fromPoint)
         const { x: x2, y: y2 } = getJackCoords(toPoint)
@@ -118,33 +121,39 @@ export function CableSVG({
       })}
 
       {/* ── Cross-device exit half-cables ──────────────────────────── */}
-      {exitConns.map((conn, exitIdx) => {
+      {exitConns.map((conn) => {
         const fromParsed = safeParseJackId(conn.fromJack)
         if (!fromParsed) return null
         const point = DFAM_PATCH_POINTS.find(p => p.id === fromParsed.jackId)
-        if (!point) return null
+        if (!point) {
+          console.warn('[CableSVG] Unknown jack id in exit connection:', conn)
+          return null
+        }
         const { x, y } = getJackCoords(point)
         const hex = cableHex(conn.color)
-        const d = `M ${x} ${y} C ${x} ${y + 60} ${x} 559 ${x} 559`
+        const d = `M ${x} ${y} C ${x} ${y + 60} ${x} ${PANEL_HEIGHT} ${x} ${PANEL_HEIGHT}`
         return (
-          <g key={`exit-${exitIdx}`}>
+          <g key={`exit-${conn.fromJack}`}>
             <path d={d} stroke={hex} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeDasharray="5 3" data-cable="exit" />
-            <circle cx={x} cy={559} r={4} fill={hex} />
+            <circle cx={x} cy={PANEL_HEIGHT} r={4} fill={hex} />
           </g>
         )
       })}
 
       {/* ── Cross-device entry half-cables ─────────────────────────── */}
-      {entryConns.map((conn, entryIdx) => {
+      {entryConns.map((conn) => {
         const toParsed = safeParseJackId(conn.toJack)
         if (!toParsed) return null
         const point = DFAM_PATCH_POINTS.find(p => p.id === toParsed.jackId)
-        if (!point) return null
+        if (!point) {
+          console.warn('[CableSVG] Unknown jack id in entry connection:', conn)
+          return null
+        }
         const { x, y } = getJackCoords(point)
         const hex = cableHex(conn.color)
         const d = `M ${x} 0 C ${x} 60 ${x} ${y - 60} ${x} ${y}`
         return (
-          <g key={`entry-${entryIdx}`}>
+          <g key={`entry-${conn.toJack}`}>
             <circle cx={x} cy={0} r={4} fill={hex} />
             <path d={d} stroke={hex} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeDasharray="5 3" data-cable="entry" />
           </g>

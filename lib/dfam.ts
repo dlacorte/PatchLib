@@ -124,6 +124,10 @@ export const JACK_COLS = [29, 86, 143]
 /** Left edge of the patchbay strip in the panel */
 export const PATCHBAY_LEFT = 1092
 
+/** Panel dimensions (px) */
+export const PANEL_WIDTH = 1300
+export const PANEL_HEIGHT = 559
+
 /** Returns the centre pixel coordinates of a jack socket in panel-local space */
 export function getJackCoords(point: PatchPointDef): { x: number; y: number } {
   return {
