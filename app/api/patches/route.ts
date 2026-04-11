@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
 
   const patches = await prisma.patch.findMany({
     where: {
+      userId: session.user.id,
       AND: [
         search
           ? {
@@ -47,12 +48,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic } = body
+  const {
+    name, devices, description, tags,
+    knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic,
+  } = body
 
+  // knobSettings from client: [{ device: 'DFAM', knobId: 'vco_decay', value: 8 }, ...]
   const patch = await prisma.patch.create({
     data: {
       name,
-      device: device || 'DFAM',
+      devices: devices?.length ? devices : ['DFAM'],
       description: description || null,
       tags: tags || [],
       sequenceNotes: sequenceNotes || null,
@@ -61,7 +66,8 @@ export async function POST(req: NextRequest) {
       isPublic: isPublic ?? false,
       userId: session.user.id,
       knobSettings: {
-        create: (knobSettings || []).map((k: { knobId: string; value: number }) => ({
+        create: (knobSettings || []).map((k: { device: string; knobId: string; value: number }) => ({
+          device: k.device || 'DFAM',
           knobId: k.knobId,
           value: k.value,
         })),

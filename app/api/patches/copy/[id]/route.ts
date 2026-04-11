@@ -21,7 +21,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const copy = await prisma.patch.create({
     data: {
       name: source.name,
-      device: source.device,
+      devices: source.devices,
       description: source.description,
       tags: source.tags,
       sequenceNotes: source.sequenceNotes,
@@ -29,7 +29,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       isPublic: false,
       userId: session.user.id,
       knobSettings: {
-        create: source.knobSettings.map(k => ({ knobId: k.knobId, value: k.value })),
+        create: source.knobSettings.map(k => ({ device: k.device, knobId: k.knobId, value: k.value })),
       },
       connections: {
         create: source.connections.map(c => ({
