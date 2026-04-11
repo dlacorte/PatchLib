@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { DFAMPanel } from '@/components/dfam/DFAMPanel'
 
 const noop = () => {}
@@ -57,5 +57,78 @@ describe('DFAMPanel', () => {
     render(<DFAMPanel values={{}} onChange={noop} connections={[]} onConnectionsChange={noop} />)
     expect(screen.getByText('HP')).toBeInTheDocument()
     expect(screen.getByText('LP')).toBeInTheDocument()
+  })
+})
+
+describe('DFAMPanel cable interaction', () => {
+  const noop = () => {}
+
+  it('accepts deviceId prop without crashing', () => {
+    render(
+      <DFAMPanel
+        deviceId="DFAM"
+        values={{}}
+        onChange={noop}
+        connections={[]}
+        onConnectionsChange={noop}
+      />
+    )
+    expect(screen.getByText('DFAM')).toBeInTheDocument()
+  })
+
+  it('clicking two jacks calls onConnectionsChange with a new connection', () => {
+    const onConnectionsChange = jest.fn()
+    const { container } = render(
+      <DFAMPanel
+        deviceId="DFAM"
+        values={{}}
+        onChange={noop}
+        connections={[]}
+        onConnectionsChange={onConnectionsChange}
+      />
+    )
+    const triggerJack = container.querySelector('[data-jack="dfam:trigger_out"]')!
+    const vcaJack = container.querySelector('[data-jack="dfam:vca_cv_in"]')!
+    fireEvent.click(triggerJack)
+    fireEvent.click(vcaJack)
+    expect(onConnectionsChange).toHaveBeenCalledWith([
+      expect.objectContaining({ fromJack: 'dfam:trigger_out', toJack: 'dfam:vca_cv_in' }),
+    ])
+  })
+
+  it('clicking same jack twice cancels pending state', () => {
+    const onConnectionsChange = jest.fn()
+    const { container } = render(
+      <DFAMPanel
+        deviceId="DFAM"
+        values={{}}
+        onChange={noop}
+        connections={[]}
+        onConnectionsChange={onConnectionsChange}
+      />
+    )
+    const triggerJack = container.querySelector('[data-jack="dfam:trigger_out"]')!
+    fireEvent.click(triggerJack)
+    fireEvent.click(triggerJack)
+    expect(onConnectionsChange).not.toHaveBeenCalled()
+  })
+
+  it('does not duplicate an existing connection', () => {
+    const onConnectionsChange = jest.fn()
+    const existing = [{ fromJack: 'dfam:trigger_out', toJack: 'dfam:vca_cv_in', color: 'orange' }]
+    const { container } = render(
+      <DFAMPanel
+        deviceId="DFAM"
+        values={{}}
+        onChange={noop}
+        connections={existing}
+        onConnectionsChange={onConnectionsChange}
+      />
+    )
+    const triggerJack = container.querySelector('[data-jack="dfam:trigger_out"]')!
+    const vcaJack = container.querySelector('[data-jack="dfam:vca_cv_in"]')!
+    fireEvent.click(triggerJack)
+    fireEvent.click(vcaJack)
+    expect(onConnectionsChange).not.toHaveBeenCalled()
   })
 })

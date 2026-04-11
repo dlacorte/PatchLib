@@ -1,32 +1,30 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DFAM_KNOBS, DFAM_PATCH_POINTS, CABLE_COLORS } from '@/lib/dfam'
+import { DFAM_KNOBS, DFAM_PATCH_POINTS, CABLE_COLORS, JACK_ROWS, JACK_COLS, PATCHBAY_LEFT } from '@/lib/dfam'
+import { prefixJackId } from '@/lib/devices'
+import type { ConnectionFormValue } from '@/lib/types'
 import { Knob } from './Knob'
 import { WaveToggle } from './WaveToggle'
+import { CableSVG } from './CableSVG'
 
 type KnobValues = Record<string, number>
-interface Connection { fromJack: string; toJack: string; color: string }
 
 interface DFAMPanelProps {
   values: KnobValues
   onChange: (values: KnobValues) => void
-  connections: Connection[]
-  onConnectionsChange: (connections: Connection[]) => void
+  connections: ConnectionFormValue[]
+  onConnectionsChange: (connections: ConnectionFormValue[]) => void
+  deviceId?: string
+  readonly?: boolean
 }
 
-// Patchbay row tops (px) — 8 rows, scaled 1.3×
-const JACK_ROWS = [74, 135, 196, 257, 319, 380, 441, 502]
-// Jack column x positions within the 208px patchbay strip, scaled 1.3×
-const JACK_COLS = [29, 86, 143]
-// Sorted patch points: row asc, col asc
 const SORTED_POINTS = [...DFAM_PATCH_POINTS].sort(
   (a, b) => a.row !== b.row ? a.row - b.row : a.col - b.col,
 )
 
 const panelFont = "'Courier New', monospace"
 
-// Abbreviated labels for patchbay jacks — avoids duplicate text with knob/button labels
 const JACK_LABEL_OVERRIDES: Record<string, string> = {
   trigger_out: 'TRIG →',
   trigger_in:  '→ TRIG',
@@ -34,16 +32,58 @@ const JACK_LABEL_OVERRIDES: Record<string, string> = {
   tempo_in: 'TEMPO →',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function DFAMPanel({ values, onChange, connections, onConnectionsChange: _onConnectionsChange }: DFAMPanelProps) {
+export function DFAMPanel({
+  values,
+  onChange,
+  connections,
+  onConnectionsChange,
+  deviceId = 'DFAM',
+  readonly = false,
+}: DFAMPanelProps) {
   const [triggerActive, setTriggerActive] = useState(false)
   const [runStop, setRunStop] = useState(false)
   const [advanceActive, setAdvanceActive] = useState(false)
+  const [pendingJack, setPendingJack] = useState<string | null>(null)
+  const [selectedCable, setSelectedCable] = useState<number | null>(null)
+  const [selectedColor, setSelectedColor] = useState('orange')
 
   const handleChange = useCallback(
     (id: string, value: number) => onChange({ ...values, [id]: value }),
     [values, onChange],
   )
+
+  const handleJackClick = useCallback(
+    (jackId: string) => {
+      setSelectedCable(null)
+      if (pendingJack === jackId) {
+        setPendingJack(null)
+        return
+      }
+      if (pendingJack === null) {
+        setPendingJack(jackId)
+        return
+      }
+      const exists = connections.some(
+        c => c.fromJack === pendingJack && c.toJack === jackId,
+      )
+      if (!exists) {
+        onConnectionsChange([...connections, { fromJack: pendingJack, toJack: jackId, color: selectedColor }])
+      }
+      setPendingJack(null)
+    },
+    [pendingJack, selectedColor, connections, onConnectionsChange],
+  )
+
+  const handleCableSelect = useCallback((i: number) => {
+    setPendingJack(null)
+    setSelectedCable(prev => (prev === i ? null : i))
+  }, [])
+
+  const handleCableDelete = useCallback(() => {
+    if (selectedCable === null) return
+    onConnectionsChange(connections.filter((_, i) => i !== selectedCable))
+    setSelectedCable(null)
+  }, [selectedCable, connections, onConnectionsChange])
 
   const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
 
@@ -97,6 +137,60 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
 
   return (
     <div style={{ overflowX: 'auto' }}>
+      {/* Color picker + status bar */}
+      {!readonly && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, height: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, color: '#6a6050', letterSpacing: 1, fontFamily: panelFont, textTransform: 'uppercase' }}>
+              Cable:
+            </span>
+            <div style={{ display: 'flex', gap: 5 }}>
+              {CABLE_COLORS.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setSelectedColor(c.id)}
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    backgroundColor: c.hex,
+                    border: selectedColor === c.id ? '2px solid #fff' : '2px solid transparent',
+                    transform: selectedColor === c.id ? 'scale(1.25)' : 'scale(1)',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                  aria-label={`${c.label} cable`}
+                />
+              ))}
+            </div>
+          </div>
+          {pendingJack && (
+            <span style={{ fontSize: 10, color: '#e07b39', fontFamily: panelFont }}>
+              Click a second jack to connect — or click the same jack to cancel
+            </span>
+          )}
+          {selectedCable !== null && (
+            <button
+              type="button"
+              onClick={handleCableDelete}
+              style={{
+                fontSize: 10,
+                color: '#ef4444',
+                border: '1px solid rgba(239,68,68,0.4)',
+                borderRadius: 4,
+                padding: '2px 8px',
+                background: 'rgba(239,68,68,0.08)',
+                cursor: 'pointer',
+                fontFamily: panelFont,
+              }}
+            >
+              Remove cable
+            </button>
+          )}
+        </div>
+      )}
+
       <div
         style={{
           position: 'relative',
@@ -112,7 +206,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         {/* ── PANEL HEADER ─────────────────────────────────────────── */}
         <div style={{ position: 'absolute', left: 20, top: 10, display: 'flex', alignItems: 'baseline', gap: 13 }}>
           <span style={{ fontSize: 23, fontWeight: 900, letterSpacing: 8, color: '#e8e0cc', fontFamily: panelFont }}>
-            DFAM
+            {deviceId}
           </span>
           <span style={{ fontSize: 9, letterSpacing: 2, color: '#3a3028', fontFamily: panelFont }}>
             DRUMMER FROM ANOTHER MOTHER
@@ -123,7 +217,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         <div
           style={{
             position: 'absolute',
-            left: 1092,
+            left: PATCHBAY_LEFT,
             top: 0,
             width: 208,
             height: 559,
@@ -325,13 +419,14 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         </div>
 
         {SORTED_POINTS.map(point => {
+          const prefixedId = prefixJackId(deviceId, point.id)
           const connected = connections.find(
-            c => c.fromJack === point.id || c.toJack === point.id,
+            c => c.fromJack === prefixedId || c.toJack === prefixedId,
           )
           const cableColor = connected
             ? (CABLE_COLORS.find(c => c.id === connected.color)?.hex ?? '#e07b39')
             : null
-          const stripLeft = 1092 + JACK_COLS[point.col - 1]
+          const stripLeft = PATCHBAY_LEFT + JACK_COLS[point.col - 1]
           const top = JACK_ROWS[point.row - 1]
 
           return (
@@ -390,6 +485,30 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
           )
         })}
 
+        {/* ── SVG cable overlay ─────────────────────────────────────── */}
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1300,
+            height: 559,
+            pointerEvents: 'none',
+            overflow: 'visible',
+          }}
+        >
+          <CableSVG
+            deviceId={deviceId}
+            connections={connections}
+            pendingJack={pendingJack}
+            selectedCable={selectedCable}
+            selectedColor={selectedColor}
+            onJackClick={handleJackClick}
+            onCableSelect={handleCableSelect}
+            onCableDelete={handleCableDelete}
+            readonly={readonly}
+          />
+        </svg>
       </div>
     </div>
   )
