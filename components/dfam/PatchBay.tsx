@@ -1,14 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { CABLE_COLORS, type PatchPointDef } from '@/lib/dfam'
 import { prefixJackId } from '@/lib/devices'
-
-interface Connection {
-  fromJack: string
-  toJack: string
-  color: string
-}
+import type { ConnectionFormValue } from '@/lib/types'
 
 export interface DevicePoints {
   deviceId: string
@@ -18,8 +13,8 @@ export interface DevicePoints {
 
 interface PatchBayProps {
   devicePoints: DevicePoints[]
-  connections: Connection[]
-  onChange: (connections: Connection[]) => void
+  connections: ConnectionFormValue[]
+  onChange: (connections: ConnectionFormValue[]) => void
   selectedColor?: string
 }
 
@@ -35,10 +30,28 @@ export function PatchBay({ devicePoints, connections, onChange, selectedColor: e
   const selectedColor = externalColor ?? internalColor
 
   // Build set of all output jack prefixed IDs
-  const outIds = new Set(
-    devicePoints.flatMap(dp =>
-      dp.points.filter(p => p.direction === 'out').map(p => prefixJackId(dp.deviceId, p.id))
-    )
+  const outIds = useMemo(
+    () =>
+      new Set(
+        devicePoints.flatMap(dp =>
+          dp.points.filter(p => p.direction === 'out').map(p => prefixJackId(dp.deviceId, p.id))
+        )
+      ),
+    [devicePoints],
+  )
+
+  // Find the label for a prefixed jack ID across all devices
+  const findLabel = useCallback(
+    (prefixedId: string) => {
+      const colon = prefixedId.indexOf(':')
+      if (colon === -1) return prefixedId
+      const devId = prefixedId.slice(0, colon).toUpperCase()
+      const jackId = prefixedId.slice(colon + 1)
+      const dp = devicePoints.find(d => d.deviceId === devId)
+      const point = dp?.points.find(p => p.id === jackId)
+      return point ? `${dp!.deviceLabel} ${point.label}` : prefixedId
+    },
+    [devicePoints],
   )
 
   const handleJackClick = useCallback(
@@ -177,16 +190,6 @@ export function PatchBay({ devicePoints, connections, onChange, selectedColor: e
         <div className="space-y-1">
           <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1">Cables</div>
           {connections.map((conn, i) => {
-            // Find the label for a prefixed jack ID across all devices
-            const findLabel = (prefixedId: string) => {
-              const colon = prefixedId.indexOf(':')
-              if (colon === -1) return prefixedId
-              const devId = prefixedId.slice(0, colon).toUpperCase()
-              const jackId = prefixedId.slice(colon + 1)
-              const dp = devicePoints.find(d => d.deviceId === devId)
-              const point = dp?.points.find(p => p.id === jackId)
-              return point ? `${dp!.deviceLabel} ${point.label}` : prefixedId
-            }
             return (
               <button
                 key={i}

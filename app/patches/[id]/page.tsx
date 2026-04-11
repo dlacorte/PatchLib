@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { DFAM_KNOBS, DFAM_PATCH_POINTS } from '@/lib/dfam'
+import { DFAM_KNOBS, CABLE_COLORS } from '@/lib/dfam'
+import { getDevice } from '@/lib/devices'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
 import { AudioPlayer } from '@/components/audio/AudioPlayer'
 import { auth } from '@/auth'
@@ -50,7 +51,7 @@ export default async function PatchDetailPage({ params }: PageProps) {
     color: c.color,
   }))
 
-  const deviceList = patch.devices as string[]
+  const deviceList = patch.devices
   const sections = Object.keys(SECTION_LABELS) as (keyof typeof SECTION_LABELS)[]
 
   return (
@@ -184,8 +185,13 @@ export default async function PatchDetailPage({ params }: PageProps) {
             if (colon === -1) return prefixedId
             const devId = prefixedId.slice(0, colon).toUpperCase()
             const jackId = prefixedId.slice(colon + 1)
-            const point = DFAM_PATCH_POINTS.find(p => p.id === jackId)
-            return point ? `${devId} ${point.label}` : prefixedId
+            try {
+              const def = getDevice(devId as import('@/lib/types').Device)
+              const point = def.patchPoints.find(p => p.id === jackId)
+              return point ? `${devId} ${point.label}` : prefixedId
+            } catch {
+              return prefixedId
+            }
           }
           return (
             <div className="max-w-3xl mx-auto px-6">
@@ -197,16 +203,7 @@ export default async function PatchDetailPage({ params }: PageProps) {
                   <div key={i} className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
                     <span
                       className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor:
-                          conn.color === 'orange' ? '#e07b39' :
-                          conn.color === 'blue'   ? '#3b82f6' :
-                          conn.color === 'green'  ? '#22c55e' :
-                          conn.color === 'red'    ? '#ef4444' :
-                          conn.color === 'yellow' ? '#eab308' :
-                          conn.color === 'white'  ? '#ffffff' :
-                          '#e07b39',
-                      }}
+                      style={{ backgroundColor: CABLE_COLORS.find(c => c.id === conn.color)?.hex ?? '#e07b39' }}
                     />
                     <span className="text-orange-400/70">{resolveJack(conn.fromJack)}</span>
                     <span className="text-zinc-700">→</span>

@@ -7,11 +7,15 @@ export const dynamic = 'force-dynamic'
 type Params = { params: { id: string } }
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  const session = await auth()
   const patch = await prisma.patch.findUnique({
     where: { id: params.id },
     include: { knobSettings: true, connections: true },
   })
   if (!patch) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!patch.isPublic && patch.userId !== session?.user?.id) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
   return NextResponse.json(patch)
 }
 
@@ -37,36 +41,37 @@ export async function PUT(req: NextRequest, { params }: Params) {
     knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic,
   } = body
 
-  await prisma.knobSetting.deleteMany({ where: { patchId: params.id } })
-  await prisma.cableConnection.deleteMany({ where: { patchId: params.id } })
-
-  const patch = await prisma.patch.update({
-    where: { id: params.id },
-    data: {
-      name,
-      devices: devices?.length ? devices : ['DFAM'],
-      description: description || null,
-      tags: tags || [],
-      sequenceNotes: sequenceNotes || null,
-      audioUrl: audioUrl || null,
-      photoUrl: photoUrl || null,
-      isPublic: isPublic ?? existing.isPublic,
-      knobSettings: {
-        create: (knobSettings || []).map((k: { device: string; knobId: string; value: number }) => ({
-          device: k.device || 'DFAM',
-          knobId: k.knobId,
-          value: k.value,
-        })),
+  const patch = await prisma.$transaction(async (tx) => {
+    await tx.knobSetting.deleteMany({ where: { patchId: params.id } })
+    await tx.cableConnection.deleteMany({ where: { patchId: params.id } })
+    return tx.patch.update({
+      where: { id: params.id },
+      data: {
+        name,
+        devices: devices?.length ? devices : ['DFAM'],
+        description: description || null,
+        tags: tags || [],
+        sequenceNotes: sequenceNotes || null,
+        audioUrl: audioUrl || null,
+        photoUrl: photoUrl || null,
+        isPublic: isPublic ?? existing.isPublic,
+        knobSettings: {
+          create: (knobSettings || []).map((k: { device: string; knobId: string; value: number }) => ({
+            device: k.device || 'DFAM',
+            knobId: k.knobId,
+            value: k.value,
+          })),
+        },
+        connections: {
+          create: (connections || []).map((c: { fromJack: string; toJack: string; color: string }) => ({
+            fromJack: c.fromJack,
+            toJack: c.toJack,
+            color: c.color,
+          })),
+        },
       },
-      connections: {
-        create: (connections || []).map((c: { fromJack: string; toJack: string; color: string }) => ({
-          fromJack: c.fromJack,
-          toJack: c.toJack,
-          color: c.color,
-        })),
-      },
-    },
-    include: { knobSettings: true, connections: true },
+      include: { knobSettings: true, connections: true },
+    })
   })
 
   return NextResponse.json(patch)

@@ -33,11 +33,15 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
     setDevices(prev => {
       if (prev.includes(deviceId)) {
         if (prev.length === 1) return prev // must have at least one
+        const prefix = deviceId.toLowerCase() + ':'
+        setConnections(c => c.filter(
+          conn => !conn.fromJack.startsWith(prefix) && !conn.toJack.startsWith(prefix)
+        ))
         return prev.filter(d => d !== deviceId)
       }
       return [...prev, deviceId]
     })
-  }, [])
+  }, [setConnections])
 
   const handleKnobChange = useCallback((deviceId: string, values: Record<string, number>) => {
     setKnobSettings(prev => ({ ...prev, [deviceId]: values }))

@@ -14,6 +14,18 @@ jest.mock('@/lib/prisma', () => ({
     },
     knobSetting: { deleteMany: jest.fn() },
     cableConnection: { deleteMany: jest.fn() },
+    $transaction: jest.fn(async (fn: (tx: unknown) => unknown) =>
+      fn({
+        knobSetting: { deleteMany: jest.fn() },
+        cableConnection: { deleteMany: jest.fn() },
+        patch: { update: jest.fn().mockResolvedValue({
+          id: 'cltest123', name: 'Updated', devices: ['DFAM'], description: null,
+          tags: [], sequenceNotes: null, audioUrl: null, photoUrl: null,
+          isPublic: false, userId: 'u1', createdAt: new Date(), updatedAt: new Date(),
+          knobSettings: [], connections: [],
+        }) },
+      })
+    ),
   },
 }))
 
@@ -42,7 +54,10 @@ const fullPatch = {
 }
 
 describe('GET /api/patches/[id]', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'u1' } })
+  })
 
   it('returns patch when found', async () => {
     ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue(fullPatch)
@@ -57,6 +72,14 @@ describe('GET /api/patches/[id]', () => {
     ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue(null)
     const req = new NextRequest('http://localhost/api/patches/missing')
     const res = await GET(req, { params: { id: 'missing' } })
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 404 for private patch viewed by non-owner', async () => {
+    ;(mockAuth as jest.Mock).mockResolvedValue({ user: { id: 'other' } })
+    ;(prisma.patch.findUnique as jest.Mock).mockResolvedValue(fullPatch)
+    const req = new NextRequest('http://localhost/api/patches/cltest123')
+    const res = await GET(req, params)
     expect(res.status).toBe(404)
   })
 })

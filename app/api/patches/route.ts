@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
+import type { Device } from '@/lib/types'
+import { SUPPORTED_DEVICES } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,7 +55,13 @@ export async function POST(req: NextRequest) {
     knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic,
   } = body
 
-  // knobSettings from client: [{ device: 'DFAM', knobId: 'vco_decay', value: 8 }, ...]
+  if (devices && !Array.isArray(devices)) {
+    return NextResponse.json({ error: 'devices must be an array' }, { status: 400 })
+  }
+  if (devices && !devices.every((d: unknown) => SUPPORTED_DEVICES.includes(d as Device))) {
+    return NextResponse.json({ error: 'Invalid device' }, { status: 400 })
+  }
+
   const patch = await prisma.patch.create({
     data: {
       name,
