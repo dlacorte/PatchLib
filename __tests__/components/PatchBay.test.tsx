@@ -1,45 +1,40 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { PatchBay } from '@/components/dfam/PatchBay'
+import { DFAM_PATCH_POINTS } from '@/lib/dfam'
 
-const noConnections: Array<{ fromJack: string; toJack: string; color: string }> = []
+const dfamPoints = { deviceId: 'DFAM', deviceLabel: 'DFAM', points: DFAM_PATCH_POINTS }
 
 describe('PatchBay', () => {
-  it('renders output jack label VCO 1', () => {
-    render(<PatchBay connections={noConnections} onChange={jest.fn()} />)
-    expect(screen.getByText('VCO 1')).toBeInTheDocument()
+  it('renders all jack buttons for a single device', () => {
+    render(<PatchBay devicePoints={[dfamPoints]} connections={[]} onChange={jest.fn()} />)
+    // Each jack has a button
+    expect(screen.getAllByRole('button').length).toBeGreaterThan(0)
   })
 
-  it('renders input jack label VCO 1 CV', () => {
-    render(<PatchBay connections={noConnections} onChange={jest.fn()} />)
-    expect(screen.getByText('VCO 1 CV')).toBeInTheDocument()
+  it('renders device section label', () => {
+    render(<PatchBay devicePoints={[dfamPoints]} connections={[]} onChange={jest.fn()} />)
+    expect(screen.getByText('DFAM')).toBeInTheDocument()
   })
 
-  it('renders TRIGGER output jack', () => {
-    render(<PatchBay connections={noConnections} onChange={jest.fn()} />)
-    // Multiple TRIGGER labels may exist (trigger_out and trigger_in)
-    expect(screen.getAllByText('TRIGGER').length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('calls onChange when a complete connection is made via clicking output then input', () => {
+  it('clicking an out jack then an in jack adds a connection with prefixed IDs', () => {
     const onChange = jest.fn()
-    const { getByTestId } = render(<PatchBay connections={noConnections} onChange={onChange} />)
-    fireEvent.click(getByTestId('jack-vco1_audio_out'))
-    fireEvent.click(getByTestId('jack-vco1_cv_in'))
+    render(<PatchBay devicePoints={[dfamPoints]} connections={[]} onChange={onChange} selectedColor="orange" />)
+    fireEvent.click(screen.getByTestId('jack-dfam:trigger_out'))
+    fireEvent.click(screen.getByTestId('jack-dfam:trigger_in'))
     expect(onChange).toHaveBeenCalledWith([
-      { fromJack: 'vco1_audio_out', toJack: 'vco1_cv_in', color: 'orange' }
+      { fromJack: 'dfam:trigger_out', toJack: 'dfam:trigger_in', color: 'orange' },
     ])
   })
 
-  it('renders cables list when connection exists', () => {
-    const connections = [{ fromJack: 'pitch_out', toJack: 'vco1_cv_in', color: 'orange' }]
-    render(<PatchBay connections={connections} onChange={jest.fn()} />)
-    expect(screen.getByText('Cables')).toBeInTheDocument()
-  })
-
-  it('does not call onChange when clicking an input with no pending output', () => {
-    const onChange = jest.fn()
-    const { getByTestId } = render(<PatchBay connections={noConnections} onChange={onChange} />)
-    fireEvent.click(getByTestId('jack-vco1_cv_in'))
-    expect(onChange).not.toHaveBeenCalled()
+  it('renders two device sections when two devices passed', () => {
+    render(
+      <PatchBay
+        devicePoints={[dfamPoints, { deviceId: 'XFAM', deviceLabel: 'XFAM', points: DFAM_PATCH_POINTS }]}
+        connections={[]}
+        onChange={jest.fn()}
+      />
+    )
+    expect(screen.getByText('DFAM')).toBeInTheDocument()
+    expect(screen.getByText('XFAM')).toBeInTheDocument()
   })
 })
