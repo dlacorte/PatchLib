@@ -1,4 +1,4 @@
-import { DFAM_KNOBS, DFAM_PATCH_POINTS, CABLE_COLORS } from '@/lib/dfam'
+import { DFAM_KNOBS, DFAM_PATCH_POINTS, CABLE_COLORS, JACK_ROWS, JACK_COLS, PATCHBAY_LEFT, getJackCoords } from '@/lib/dfam'
 
 describe('DFAM_KNOBS', () => {
   it('has 8 pitch/fm/sync controls', () => {
@@ -105,5 +105,36 @@ describe('CABLE_COLORS', () => {
 
   it('includes orange as first color', () => {
     expect(CABLE_COLORS[0].id).toBe('orange')
+  })
+})
+
+describe('jack coordinate constants', () => {
+  it('JACK_ROWS has 8 values', () => {
+    expect(JACK_ROWS).toHaveLength(8)
+  })
+
+  it('JACK_COLS has 3 values', () => {
+    expect(JACK_COLS).toHaveLength(3)
+  })
+
+  it('PATCHBAY_LEFT is 1092', () => {
+    expect(PATCHBAY_LEFT).toBe(1092)
+  })
+})
+
+describe('getJackCoords', () => {
+  it('row 1 col 1 → { x: 1121, y: 74 }', () => {
+    const point = DFAM_PATCH_POINTS.find(p => p.row === 1 && p.col === 1)!
+    expect(getJackCoords(point)).toEqual({ x: 1121, y: 74 })
+  })
+
+  it('row 8 col 3 → { x: 1235, y: 502 }', () => {
+    const point = DFAM_PATCH_POINTS.find(p => p.row === 8 && p.col === 3)!
+    expect(getJackCoords(point)).toEqual({ x: 1235, y: 502 })
+  })
+
+  it('row 1 col 2 → { x: 1178, y: 74 }', () => {
+    const point = DFAM_PATCH_POINTS.find(p => p.row === 1 && p.col === 2)!
+    expect(getJackCoords(point)).toEqual({ x: 1178, y: 74 })
   })
 })

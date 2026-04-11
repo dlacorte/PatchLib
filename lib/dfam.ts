@@ -112,3 +112,22 @@ export const CABLE_COLORS: CableColorDef[] = [
   { id: 'red',    hex: '#e05555', label: 'Red' },
   { id: 'white',  hex: '#dddddd', label: 'White' },
 ]
+
+// ── PANEL GEOMETRY ──────────────────────────────────────────────────────────
+
+/** Row top y-positions (px) in the 1300×559 panel — 8 rows, scaled 1.3× */
+export const JACK_ROWS = [74, 135, 196, 257, 319, 380, 441, 502]
+
+/** Column x-offsets (px) within the patchbay strip — 3 columns */
+export const JACK_COLS = [29, 86, 143]
+
+/** Left edge of the patchbay strip in the panel */
+export const PATCHBAY_LEFT = 1092
+
+/** Returns the centre pixel coordinates of a jack socket in panel-local space */
+export function getJackCoords(point: PatchPointDef): { x: number; y: number } {
+  return {
+    x: PATCHBAY_LEFT + JACK_COLS[point.col - 1],
+    y: JACK_ROWS[point.row - 1],
+  }
+}
