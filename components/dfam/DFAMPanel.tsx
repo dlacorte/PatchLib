@@ -23,6 +23,8 @@ const SORTED_POINTS = [...DFAM_PATCH_POINTS].sort(
   (a, b) => a.row !== b.row ? a.row - b.row : a.col - b.col,
 )
 
+const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
+
 const panelFont = "'Courier New', monospace"
 
 const JACK_LABEL_OVERRIDES: Record<string, string> = {
@@ -30,6 +32,26 @@ const JACK_LABEL_OVERRIDES: Record<string, string> = {
   trigger_in:  '→ TRIG',
   vco_decay_in: 'VCO DEC',
   tempo_in: 'TEMPO →',
+}
+
+function C({ left, top, children }: { left: number; top: number; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left,
+        top,
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        fontFamily: panelFont,
+      }}
+    >
+      {children}
+    </div>
+  )
 }
 
 export function DFAMPanel({
@@ -64,7 +86,9 @@ export function DFAMPanel({
         return
       }
       const exists = connections.some(
-        c => c.fromJack === pendingJack && c.toJack === jackId,
+        c =>
+          (c.fromJack === pendingJack && c.toJack === jackId) ||
+          (c.fromJack === jackId && c.toJack === pendingJack),
       )
       if (!exists) {
         onConnectionsChange([...connections, { fromJack: pendingJack, toJack: jackId, color: selectedColor }])
@@ -84,8 +108,6 @@ export function DFAMPanel({
     onConnectionsChange(connections.filter((_, i) => i !== selectedCable))
     setSelectedCable(null)
   }, [selectedCable, connections, onConnectionsChange])
-
-  const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
 
   function kn(id: string, size = 62) {
     const k = knobById[id]
@@ -112,26 +134,6 @@ export function DFAMPanel({
         onChange={handleChange}
         options={k.options ?? ['OFF', 'ON']}
       />
-    )
-  }
-
-  function C({ left, top, children }: { left: number; top: number; children: React.ReactNode }) {
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          left,
-          top,
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 4,
-          fontFamily: panelFont,
-        }}
-      >
-        {children}
-      </div>
     )
   }
 
@@ -505,7 +507,6 @@ export function DFAMPanel({
             selectedColor={selectedColor}
             onJackClick={handleJackClick}
             onCableSelect={handleCableSelect}
-            onCableDelete={handleCableDelete}
             readonly={readonly}
           />
         </svg>

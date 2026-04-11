@@ -15,7 +15,6 @@ interface CableSVGProps {
   selectedColor: string
   onJackClick: (jackId: string) => void
   onCableSelect: (index: number) => void
-  onCableDelete: () => void
   readonly?: boolean
 }
 
@@ -39,7 +38,6 @@ export function CableSVG({
   selectedColor,
   onJackClick,
   onCableSelect,
-  onCableDelete,
   readonly = false,
 }: CableSVGProps) {
   // Same-device connections: both jacks belong to this device
