@@ -2,7 +2,7 @@
 
 import { DFAMPanel } from './DFAMPanel'
 import type { ConnectionFormValue, Device } from '@/lib/types'
-import { CABLE_COLORS, DFAM_PATCH_POINTS, getJackCoords } from '@/lib/dfam'
+import { CABLE_COLORS, DFAM_PATCH_POINTS, getJackCoords, PANEL_WIDTH } from '@/lib/dfam'
 import { parseJackId } from '@/lib/devices'
 
 interface PanelStackProps {
@@ -17,6 +17,7 @@ function safeParseJackId(prefixed: string): { deviceId: string; jackId: string }
   try {
     return parseJackId(prefixed)
   } catch {
+    console.warn('[PanelStack] Malformed jack ID (missing device prefix):', prefixed)
     return null
   }
 }
@@ -45,12 +46,14 @@ function BridgeStrip({ sourceDeviceId, targetDeviceId, connections }: BridgeStri
   if (bridgeConns.length === 0) return <div style={{ height: 16 }} />
 
   return (
-    <svg style={{ display: 'block', width: 1300, height: 16 }}>
+    <svg style={{ display: 'block', width: PANEL_WIDTH, height: 16 }}>
       {bridgeConns.map(conn => {
         const from = safeParseJackId(conn.fromJack)
         const to = safeParseJackId(conn.toJack)
         if (!from || !to) return null
 
+        // Note: both DFAM and XFAM currently share DFAM_PATCH_POINTS (same layout).
+        // If XFAM gets its own geometry, replace with a per-device point lookup.
         const fromPoint = DFAM_PATCH_POINTS.find(p => p.id === from.jackId)
         const toPoint = DFAM_PATCH_POINTS.find(p => p.id === to.jackId)
         if (!fromPoint || !toPoint) return null
@@ -61,8 +64,9 @@ function BridgeStrip({ sourceDeviceId, targetDeviceId, connections }: BridgeStri
 
         // x1 = the jack that exits the source panel (bottom edge)
         // x2 = the jack that enters the target panel (top edge)
-        const x1 = from.deviceId === sourceDeviceId ? fromCoords.x : toCoords.x
-        const x2 = from.deviceId === targetDeviceId ? fromCoords.x : toCoords.x
+        const fromIsSource = from.deviceId === sourceDeviceId
+        const x1 = fromIsSource ? fromCoords.x : toCoords.x
+        const x2 = fromIsSource ? toCoords.x : fromCoords.x
 
         return (
           <line
