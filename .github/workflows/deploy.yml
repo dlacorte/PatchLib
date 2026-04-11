@@ -4,11 +4,16 @@ on:
   push:
     branches:
       - main
+      - feature/oidc
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -26,8 +31,11 @@ jobs:
       - name: Run tests
         run: npm test -- --testPathIgnorePatterns="__tests__/middleware.test.ts"
 
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::317447425242:role/GitHubActions-AdminDeploy
+          aws-region: us-east-1
+
       - name: Deploy to production
         run: npx sst deploy --stage production
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
