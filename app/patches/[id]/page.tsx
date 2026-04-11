@@ -36,19 +36,21 @@ export default async function PatchDetailPage({ params }: PageProps) {
     year: 'numeric', month: 'long', day: 'numeric',
   })
 
-  // Build values map for DFAMPanel
-  const values: Record<string, number> = Object.fromEntries(
-    patch.knobSettings.map(k => [k.knobId, k.value])
-  )
+  // Build per-device values map
+  const valuesByDevice: Record<string, Record<string, number>> = {}
+  for (const k of patch.knobSettings) {
+    if (!valuesByDevice[k.device]) valuesByDevice[k.device] = {}
+    valuesByDevice[k.device][k.knobId] = k.value
+  }
 
-  // Build connections for DFAMPanel
+  // Build connections (already prefixed)
   const connections = patch.connections.map(c => ({
     fromJack: c.fromJack,
     toJack: c.toJack,
     color: c.color,
   }))
 
-  // Group knobs by section for the table
+  const deviceList = patch.devices as string[]
   const sections = Object.keys(SECTION_LABELS) as (keyof typeof SECTION_LABELS)[]
 
   return (
@@ -91,7 +93,9 @@ export default async function PatchDetailPage({ params }: PageProps) {
         <div className="max-w-3xl mx-auto px-6">
           <h1 className="text-2xl font-mono font-bold text-zinc-100 mb-1">{patch.name}</h1>
           <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500">
-            <span className="border border-zinc-700 rounded px-1.5 py-0.5">{patch.device}</span>
+            {deviceList.map(d => (
+              <span key={d} className="border border-zinc-700 rounded px-1.5 py-0.5">{d}</span>
+            ))}
             <span>{date}</span>
           </div>
           {patch.description && (
@@ -108,44 +112,57 @@ export default async function PatchDetailPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* DFAM Panel — full width */}
-        <div className="px-6">
-          <DFAMPanelStatic values={values} connections={connections} />
-        </div>
+        {/* One DFAMPanelStatic per device */}
+        {deviceList.map(deviceId => (
+          <div key={deviceId} className="px-6">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3 max-w-3xl mx-auto">
+              {deviceId}
+            </div>
+            <DFAMPanelStatic
+              values={valuesByDevice[deviceId] ?? {}}
+              connections={connections}
+            />
+          </div>
+        ))}
 
-        {/* Knob table */}
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-            Knob Settings
-          </div>
-          <div className="space-y-6">
-            {sections.map(section => {
-              const sectionKnobs = DFAM_KNOBS.filter(k => k.section === section && values[k.id] !== undefined)
-              if (sectionKnobs.length === 0) return null
-              return (
-                <div key={section}>
-                  <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-2">
-                    {SECTION_LABELS[section]}
-                  </div>
-                  <table className="w-full text-xs font-mono">
-                    <tbody>
-                      {sectionKnobs.map(knob => (
-                        <tr key={knob.id} className="border-b border-zinc-900">
-                          <td className="py-1.5 text-zinc-500">{knob.label}</td>
-                          <td className="py-1.5 text-right text-orange-400 font-bold">
-                            {knob.type === 'switch'
-                              ? (knob.options?.[values[knob.id]] ?? values[knob.id])
-                              : values[knob.id].toFixed(1)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        {/* Knob table — per device, then per section */}
+        {deviceList.map(deviceId => {
+          const devValues = valuesByDevice[deviceId] ?? {}
+          return (
+            <div key={deviceId} className="max-w-3xl mx-auto px-6">
+              <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+                {deviceId} — Knob Settings
+              </div>
+              <div className="space-y-6">
+                {sections.map(section => {
+                  const sectionKnobs = DFAM_KNOBS.filter(k => k.section === section && devValues[k.id] !== undefined)
+                  if (sectionKnobs.length === 0) return null
+                  return (
+                    <div key={section}>
+                      <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-2">
+                        {SECTION_LABELS[section]}
+                      </div>
+                      <table className="w-full text-xs font-mono">
+                        <tbody>
+                          {sectionKnobs.map(knob => (
+                            <tr key={knob.id} className="border-b border-zinc-900">
+                              <td className="py-1.5 text-zinc-500">{knob.label}</td>
+                              <td className="py-1.5 text-right text-orange-400 font-bold">
+                                {knob.type === 'switch'
+                                  ? (knob.options?.[devValues[knob.id]] ?? devValues[knob.id])
+                                  : devValues[knob.id].toFixed(1)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
 
         {/* Notes */}
         {patch.sequenceNotes && (
