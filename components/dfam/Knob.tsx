@@ -78,7 +78,7 @@ export function Knob({ id, label, value, onChange, min = 0, max = 10, size = 48 
         onPointerUp={handlePointerUp}
         aria-label={`${label} knob, value ${value}`}
       >
-        <circle cx={r} cy={r} r={r - 3} fill="#1a1a1a" stroke="#2a2a2a" strokeWidth="1.5" />
+        <circle cx={r} cy={r} r={r - 3} fill="#141414" stroke="#303030" strokeWidth="1.5" />
         <line
           x1={ix} y1={iy}
           x2={ox} y2={oy}
