@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { EditPatchClient } from './EditPatchClient'
-import type { PatchFormValues } from '@/lib/types'
+import type { PatchFormValues, Device } from '@/lib/types'
 
 interface PageProps {
   params: { id: string }
@@ -20,11 +20,19 @@ export default async function EditPatchPage({ params }: PageProps) {
   if (!patch) notFound()
   if (patch.userId !== session.user.id) redirect('/library')
 
+  // Reconstruct nested knobSettings from DB flat rows
+  const knobSettings: Record<string, Record<string, number>> = {}
+  for (const k of patch.knobSettings) {
+    if (!knobSettings[k.device]) knobSettings[k.device] = {}
+    knobSettings[k.device][k.knobId] = k.value
+  }
+
   const defaultValues: PatchFormValues = {
     name: patch.name,
     description: patch.description ?? '',
+    devices: patch.devices as Device[],
     tags: patch.tags,
-    knobSettings: Object.fromEntries(patch.knobSettings.map(k => [k.knobId, k.value])),
+    knobSettings,
     connections: patch.connections.map(c => ({
       fromJack: c.fromJack,
       toJack: c.toJack,
