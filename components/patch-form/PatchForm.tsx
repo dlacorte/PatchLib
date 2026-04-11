@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import type { PatchFormValues, ConnectionFormValue } from '@/lib/types'
-import { KnobGrid } from '@/components/dfam/KnobGrid'
+import { DFAMPanel } from '@/components/dfam/DFAMPanel'
 import { PatchBay } from '@/components/dfam/PatchBay'
 import { AudioUpload } from '@/components/audio/AudioUpload'
 import { VisibilityToggle } from '@/components/ui/VisibilityToggle'
@@ -37,7 +37,8 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Metadata — constrained width */}
+
+      {/* Metadata */}
       <section className="max-w-xl space-y-4">
         <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800">
           Patch Info
@@ -67,28 +68,25 @@ export function PatchForm({ defaultValues, onSubmit, isSubmitting = false }: Pat
         <VisibilityToggle value={isPublic} onChange={setIsPublic} />
       </section>
 
-      {/* Sound Engine + Patch Bay: side by side on wide screens */}
+      {/* DFAM Panel — full width, horizontally scrollable on small screens */}
       <section>
-        <div className="flex gap-6 items-start">
-          {/* Left — Sound Engine + Sequencer */}
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-              Sound Engine
-            </div>
-            <KnobGrid values={knobSettings} onChange={setKnobSettings} />
-          </div>
-
-          {/* Right — Patch Bay column */}
-          <div className="w-64 flex-none">
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
-              Patch Bay
-            </div>
-            <PatchBay connections={connections} onChange={setConnections} />
-          </div>
-        </div>
+        <DFAMPanel
+          values={knobSettings}
+          onChange={setKnobSettings}
+          connections={connections}
+          onConnectionsChange={setConnections}
+        />
       </section>
 
-      {/* Notes — constrained width */}
+      {/* Patch Bay — interactive cable management below the panel */}
+      <section className="max-w-xl">
+        <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+          Patch Bay
+        </div>
+        <PatchBay connections={connections} onChange={setConnections} />
+      </section>
+
+      {/* Notes */}
       <section className="max-w-xl space-y-4">
         <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800">
           Notes

@@ -5,9 +5,21 @@ import { VisibilityToggle } from '@/components/ui/VisibilityToggle'
 import type { PatchFormValues } from '@/lib/types'
 
 // Mock heavy child components to keep tests fast
-jest.mock('@/components/dfam/KnobGrid', () => ({
-  KnobGrid: ({ onChange }: { onChange: (v: Record<string, number>) => void }) => (
-    <div data-testid="knob-grid" onClick={() => onChange({ tempo: 7 })} />
+jest.mock('@/components/dfam/DFAMPanel', () => ({
+  DFAMPanel: ({
+    onChange,
+    onConnectionsChange,
+  }: {
+    onChange: (v: Record<string, number>) => void
+    onConnectionsChange: (c: unknown[]) => void
+  }) => (
+    <div
+      data-testid="dfam-panel"
+      onClick={() => {
+        onChange({ tempo: 7 })
+        onConnectionsChange([])
+      }}
+    />
   ),
 }))
 
@@ -34,9 +46,9 @@ describe('PatchForm', () => {
     expect(screen.getByPlaceholderText(/patch name/i)).toBeInTheDocument()
   })
 
-  it('renders sound engine section', () => {
+  it('renders dfam panel', () => {
     render(<PatchForm defaultValues={defaultValues} onSubmit={jest.fn()} />)
-    expect(screen.getByText(/sound engine/i)).toBeInTheDocument()
+    expect(screen.getByTestId('dfam-panel')).toBeInTheDocument()
   })
 
   it('renders patch bay section', () => {
