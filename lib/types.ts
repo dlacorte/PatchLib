@@ -1,8 +1,8 @@
 import type { Patch, KnobSetting, CableConnection } from '@prisma/client'
 
-export type Device = 'DFAM' | 'Subharmonicon' | 'Mother-32'
+export type Device = 'DFAM' | 'XFAM'
 
-export const SUPPORTED_DEVICES: Device[] = ['DFAM', 'Subharmonicon', 'Mother-32']
+export const SUPPORTED_DEVICES: Device[] = ['DFAM', 'XFAM']
 
 export type PatchWithRelations = Patch & {
   knobSettings: KnobSetting[]
@@ -14,12 +14,13 @@ export type PatchListItem = Patch & {
   user: { displayName: string | null; email: string }
 }
 
-// Shape used in the create/edit form — before saving to DB
+// knobSettings is now nested by device: { DFAM: { vco_decay: 8 }, XFAM: { vco_decay: 5 } }
 export interface PatchFormValues {
   name: string
   description: string
+  devices: Device[]
   tags: string[]
-  knobSettings: Record<string, number>   // knobId → value (0–10)
+  knobSettings: Record<string, Record<string, number>>  // deviceId → knobId → value
   connections: ConnectionFormValue[]
   sequenceNotes: string
   audioUrl: string
@@ -27,7 +28,7 @@ export interface PatchFormValues {
 }
 
 export interface ConnectionFormValue {
-  fromJack: string
-  toJack: string
+  fromJack: string  // prefixed: "dfam:trigger_out"
+  toJack: string    // prefixed: "xfam:trigger_in"
   color: string
 }
