@@ -13,7 +13,7 @@ jest.mock('next/navigation', () => ({
 const mockPatch = {
   id: 'cl123',
   name: 'Heavy Kick',
-  device: 'DFAM',
+  devices: ['DFAM'],
   description: 'Deep kick',
   tags: ['percussion', 'kick'],
   createdAt: new Date('2026-04-08'),
