@@ -4,7 +4,6 @@ import { PatchForm } from '@/components/patch-form/PatchForm'
 import { VisibilityToggle } from '@/components/ui/VisibilityToggle'
 import type { PatchFormValues } from '@/lib/types'
 
-// Mock heavy child components to keep tests fast
 jest.mock('@/components/dfam/DFAMPanel', () => ({
   DFAMPanel: ({
     onChange,
@@ -32,8 +31,9 @@ jest.mock('@/components/dfam/PatchBay', () => ({
 const defaultValues: PatchFormValues = {
   name: '',
   description: '',
+  devices: ['DFAM'],
   tags: [],
-  knobSettings: {},
+  knobSettings: { DFAM: {} },
   connections: [],
   sequenceNotes: '',
   audioUrl: '',
@@ -46,7 +46,13 @@ describe('PatchForm', () => {
     expect(screen.getByPlaceholderText(/patch name/i)).toBeInTheDocument()
   })
 
-  it('renders dfam panel', () => {
+  it('renders device checkboxes', () => {
+    render(<PatchForm defaultValues={defaultValues} onSubmit={jest.fn()} />)
+    expect(screen.getByLabelText('DFAM')).toBeInTheDocument()
+    expect(screen.getByLabelText('XFAM')).toBeInTheDocument()
+  })
+
+  it('renders dfam panel when DFAM is selected', () => {
     render(<PatchForm defaultValues={defaultValues} onSubmit={jest.fn()} />)
     expect(screen.getByTestId('dfam-panel')).toBeInTheDocument()
   })
@@ -56,12 +62,12 @@ describe('PatchForm', () => {
     expect(screen.getByText(/patch bay/i)).toBeInTheDocument()
   })
 
-  it('calls onSubmit with correct name when saved', () => {
+  it('calls onSubmit with correct devices', () => {
     const onSubmit = jest.fn()
     render(<PatchForm defaultValues={defaultValues} onSubmit={onSubmit} />)
     fireEvent.change(screen.getByPlaceholderText(/patch name/i), { target: { value: 'My Patch' } })
     fireEvent.click(screen.getByText(/save patch/i))
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Patch' }))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ devices: ['DFAM'] }))
   })
 })
 
