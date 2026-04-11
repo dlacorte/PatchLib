@@ -32,7 +32,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { name, device, description, tags, knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic } = body
+  const {
+    name, devices, description, tags,
+    knobSettings, connections, sequenceNotes, audioUrl, photoUrl, isPublic,
+  } = body
 
   await prisma.knobSetting.deleteMany({ where: { patchId: params.id } })
   await prisma.cableConnection.deleteMany({ where: { patchId: params.id } })
@@ -41,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     where: { id: params.id },
     data: {
       name,
-      device: device || 'DFAM',
+      devices: devices?.length ? devices : ['DFAM'],
       description: description || null,
       tags: tags || [],
       sequenceNotes: sequenceNotes || null,
@@ -49,7 +52,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       photoUrl: photoUrl || null,
       isPublic: isPublic ?? existing.isPublic,
       knobSettings: {
-        create: (knobSettings || []).map((k: { knobId: string; value: number }) => ({
+        create: (knobSettings || []).map((k: { device: string; knobId: string; value: number }) => ({
+          device: k.device || 'DFAM',
           knobId: k.knobId,
           value: k.value,
         })),

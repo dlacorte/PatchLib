@@ -29,7 +29,7 @@ export function PatchCard({ patch, variant = 'discovery', href }: PatchCardProps
               {patch.name}
             </span>
             <span className="text-[10px] font-mono text-zinc-600 border border-zinc-700 rounded px-1 py-0 flex-shrink-0">
-              {patch.device}
+              {patch.devices.join(' + ')}
             </span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-zinc-600">
