@@ -1,10 +1,11 @@
-import { DFAM_PATCH_POINTS, type PatchPointDef } from '@/lib/dfam'
+import { DFAM_KNOBS, DFAM_PATCH_POINTS, type KnobDef, type PatchPointDef } from '@/lib/dfam'
 import type { Device } from '@/lib/types'
 
 export interface DeviceDef {
   id: Device
   label: string
   patchPoints: PatchPointDef[]
+  knobs: KnobDef[]
 }
 
 export const DEVICES: DeviceDef[] = [
@@ -12,12 +13,14 @@ export const DEVICES: DeviceDef[] = [
     id: 'DFAM',
     label: 'DFAM',
     patchPoints: DFAM_PATCH_POINTS,
+    knobs: DFAM_KNOBS,
   },
   {
     id: 'XFAM',
     label: 'XFAM',
     // XFAM shares the same patch point layout as DFAM
     patchPoints: DFAM_PATCH_POINTS,
+    knobs: DFAM_KNOBS,
   },
 ]
 

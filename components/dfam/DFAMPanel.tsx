@@ -324,8 +324,9 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         </div>
 
         {SORTED_POINTS.map(point => {
+          const stripPrefix = (jack: string) => jack.includes(':') ? jack.split(':')[1] : jack
           const connected = connections.find(
-            c => c.fromJack === point.id || c.toJack === point.id,
+            c => stripPrefix(c.fromJack) === point.id || stripPrefix(c.toJack) === point.id,
           )
           const cableColor = connected
             ? (CABLE_COLORS.find(c => c.id === connected.color)?.hex ?? '#e07b39')

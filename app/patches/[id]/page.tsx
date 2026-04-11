@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { CABLE_COLORS, DFAM_KNOBS } from '@/lib/dfam'
+import { DFAM_KNOBS, DFAM_PATCH_POINTS } from '@/lib/dfam'
 import { DeletePatchButton } from '@/components/patch-form/DeletePatchButton'
 import { AudioPlayer } from '@/components/audio/AudioPlayer'
 import { auth } from '@/auth'
@@ -113,17 +113,23 @@ export default async function PatchDetailPage({ params }: PageProps) {
         </div>
 
         {/* One DFAMPanelStatic per device */}
-        {deviceList.map(deviceId => (
-          <div key={deviceId} className="px-6">
-            <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3 max-w-3xl mx-auto">
-              {deviceId}
+        {deviceList.map(deviceId => {
+          const deviceConnections = connections.filter(c => {
+            const colon = c.fromJack.indexOf(':')
+            return colon !== -1 && c.fromJack.slice(0, colon).toUpperCase() === deviceId
+          })
+          return (
+            <div key={deviceId} className="px-6">
+              <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-3 max-w-3xl mx-auto">
+                {deviceId}
+              </div>
+              <DFAMPanelStatic
+                values={valuesByDevice[deviceId] ?? {}}
+                connections={deviceConnections}
+              />
             </div>
-            <DFAMPanelStatic
-              values={valuesByDevice[deviceId] ?? {}}
-              connections={connections}
-            />
-          </div>
-        ))}
+          )
+        })}
 
         {/* Knob table — per device, then per section */}
         {deviceList.map(deviceId => {
@@ -163,6 +169,54 @@ export default async function PatchDetailPage({ params }: PageProps) {
             </div>
           )
         })}
+
+        {/* Cross-device connections */}
+        {(() => {
+          const crossDeviceConns = connections.filter(c => {
+            const fromColon = c.fromJack.indexOf(':')
+            const toColon = c.toJack.indexOf(':')
+            if (fromColon === -1 || toColon === -1) return false
+            return c.fromJack.slice(0, fromColon) !== c.toJack.slice(0, toColon)
+          })
+          if (crossDeviceConns.length === 0) return null
+          const resolveJack = (prefixedId: string) => {
+            const colon = prefixedId.indexOf(':')
+            if (colon === -1) return prefixedId
+            const devId = prefixedId.slice(0, colon).toUpperCase()
+            const jackId = prefixedId.slice(colon + 1)
+            const point = DFAM_PATCH_POINTS.find(p => p.id === jackId)
+            return point ? `${devId} ${point.label}` : prefixedId
+          }
+          return (
+            <div className="max-w-3xl mx-auto px-6">
+              <div className="text-[10px] text-zinc-500 uppercase tracking-widest pb-1 border-b border-zinc-800 mb-4">
+                Cross-Device Connections
+              </div>
+              <div className="space-y-1">
+                {crossDeviceConns.map((conn, i) => (
+                  <div key={i} className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{
+                        backgroundColor:
+                          conn.color === 'orange' ? '#e07b39' :
+                          conn.color === 'blue'   ? '#3b82f6' :
+                          conn.color === 'green'  ? '#22c55e' :
+                          conn.color === 'red'    ? '#ef4444' :
+                          conn.color === 'yellow' ? '#eab308' :
+                          conn.color === 'white'  ? '#ffffff' :
+                          '#e07b39',
+                      }}
+                    />
+                    <span className="text-orange-400/70">{resolveJack(conn.fromJack)}</span>
+                    <span className="text-zinc-700">→</span>
+                    <span className="text-zinc-400">{resolveJack(conn.toJack)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Notes */}
         {patch.sequenceNotes && (
