@@ -9,8 +9,9 @@ import type { PatchFormValues } from '@/lib/types'
 const emptyPatch: PatchFormValues = {
   name: '',
   description: '',
+  devices: ['DFAM'],
   tags: [],
-  knobSettings: {},
+  knobSettings: { DFAM: {} },
   connections: [],
   sequenceNotes: '',
   audioUrl: '',
@@ -26,14 +27,18 @@ export default function NewPatchPage() {
     setIsSubmitting(true)
     setError(null)
     try {
-      const knobSettings = Object.entries(values.knobSettings).map(([knobId, value]) => ({
-        knobId,
-        value,
-      }))
+      const knobSettingsFlat = Object.entries(values.knobSettings).flatMap(
+        ([deviceId, knobs]) =>
+          Object.entries(knobs).map(([knobId, value]) => ({ device: deviceId, knobId, value }))
+      )
       const res = await fetch('/api/patches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, knobSettings }),
+        body: JSON.stringify({
+          ...values,
+          devices: values.devices,
+          knobSettings: knobSettingsFlat,
+        }),
       })
       if (!res.ok) throw new Error('Failed to save patch')
       const patch = await res.json()

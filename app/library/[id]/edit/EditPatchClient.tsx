@@ -21,14 +21,18 @@ export function EditPatchClient({ patchId, defaultValues }: EditPatchClientProps
       setIsSubmitting(true)
       setError(null)
       try {
-        const knobSettings = Object.entries(values.knobSettings).map(([knobId, value]) => ({
-          knobId,
-          value,
-        }))
+        const knobSettingsFlat = Object.entries(values.knobSettings).flatMap(
+          ([deviceId, knobs]) =>
+            Object.entries(knobs).map(([knobId, value]) => ({ device: deviceId, knobId, value }))
+        )
         const res = await fetch(`/api/patches/${patchId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...values, knobSettings }),
+          body: JSON.stringify({
+            ...values,
+            devices: values.devices,
+            knobSettings: knobSettingsFlat,
+          }),
         })
         if (!res.ok) throw new Error('Failed to update patch')
         router.push(`/patches/${patchId}`)
