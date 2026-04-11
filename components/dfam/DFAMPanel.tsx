@@ -15,10 +15,10 @@ interface DFAMPanelProps {
   onConnectionsChange: (connections: Connection[]) => void
 }
 
-// Patchbay row tops (px) — 8 rows
-const JACK_ROWS = [57, 104, 151, 198, 245, 292, 339, 386]
-// Jack column x positions within the 160px patchbay strip
-const JACK_COLS = [22, 66, 110]
+// Patchbay row tops (px) — 8 rows, scaled 1.3×
+const JACK_ROWS = [74, 135, 196, 257, 319, 380, 441, 502]
+// Jack column x positions within the 208px patchbay strip, scaled 1.3×
+const JACK_COLS = [29, 86, 143]
 // Sorted patch points: row asc, col asc
 const SORTED_POINTS = [...DFAM_PATCH_POINTS].sort(
   (a, b) => a.row !== b.row ? a.row - b.row : a.col - b.col,
@@ -46,7 +46,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
 
   const knobById = Object.fromEntries(DFAM_KNOBS.map(k => [k.id, k]))
 
-  function kn(id: string, size = 48) {
+  function kn(id: string, size = 62) {
     const k = knobById[id]
     return (
       <Knob
@@ -85,7 +85,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 3,
+          gap: 4,
           fontFamily: panelFont,
         }}
       >
@@ -99,21 +99,21 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
       <div
         style={{
           position: 'relative',
-          width: 1000,
-          height: 430,
+          width: 1300,
+          height: 559,
           background: '#1d1d1d',
           border: '2px solid #3a3a3a',
-          borderRadius: 5,
+          borderRadius: 6,
           boxShadow: '0 8px 40px rgba(0,0,0,0.9)',
           fontFamily: panelFont,
         }}
       >
         {/* ── PANEL HEADER ─────────────────────────────────────────── */}
-        <div style={{ position: 'absolute', left: 16, top: 8, display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: 6, color: '#e8e0cc', fontFamily: panelFont }}>
+        <div style={{ position: 'absolute', left: 20, top: 10, display: 'flex', alignItems: 'baseline', gap: 13 }}>
+          <span style={{ fontSize: 23, fontWeight: 900, letterSpacing: 8, color: '#e8e0cc', fontFamily: panelFont }}>
             DFAM
           </span>
-          <span style={{ fontSize: 7, letterSpacing: 2, color: '#3a3028', fontFamily: panelFont }}>
+          <span style={{ fontSize: 9, letterSpacing: 2, color: '#3a3028', fontFamily: panelFont }}>
             DRUMMER FROM ANOTHER MOTHER
           </span>
         </div>
@@ -122,56 +122,56 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         <div
           style={{
             position: 'absolute',
-            left: 840,
+            left: 1092,
             top: 0,
-            width: 160,
-            height: 430,
+            width: 208,
+            height: 559,
             background: '#181818',
             borderLeft: '1px solid #2e2e2e',
           }}
         />
 
         {/* ── CLUSTER A: VCO / PITCH / FM ──────────────────────────── */}
-        <C left={55}  top={77}>{kn('vco_decay')}</C>
-        <C left={107} top={82}>{sw('seq_pitch_mod')}</C>
-        <C left={152} top={77}>{kn('vco1_eg_amount')}</C>
-        <C left={218} top={77}>{kn('vco1_freq')}</C>
-        <C left={55}  top={172}>{kn('fm_1_2_amount')}</C>
-        <C left={107} top={181}>{sw('hard_sync')}</C>
-        <C left={152} top={172}>{kn('vco2_eg_amount')}</C>
-        <C left={218} top={172}>{kn('vco2_freq')}</C>
+        <C left={72}  top={100}>{kn('vco_decay')}</C>
+        <C left={139} top={107}>{sw('seq_pitch_mod')}</C>
+        <C left={198} top={100}>{kn('vco1_eg_amount')}</C>
+        <C left={283} top={100}>{kn('vco1_freq')}</C>
+        <C left={72}  top={224}>{kn('fm_1_2_amount')}</C>
+        <C left={139} top={235}>{sw('hard_sync')}</C>
+        <C left={198} top={224}>{kn('vco2_eg_amount')}</C>
+        <C left={283} top={224}>{kn('vco2_freq')}</C>
 
         {/* ── CLUSTER B: WAVE / MIXER ──────────────────────────────── */}
-        <C left={305} top={77}>{sw('vco1_wave')}</C>
-        <C left={348} top={77}>{kn('vco1_level', 26)}</C>
-        <C left={327} top={127}>{kn('noise_ext_level', 26)}</C>
-        <C left={305} top={172}>{sw('vco2_wave')}</C>
-        <C left={348} top={172}>{kn('vco2_level', 26)}</C>
+        <C left={397} top={100}>{sw('vco1_wave')}</C>
+        <C left={452} top={100}>{kn('vco1_level', 34)}</C>
+        <C left={425} top={165}>{kn('noise_ext_level', 34)}</C>
+        <C left={397} top={224}>{sw('vco2_wave')}</C>
+        <C left={452} top={224}>{kn('vco2_level', 34)}</C>
 
         {/* ── CLUSTER C: FILTER ────────────────────────────────────── */}
-        <C left={415} top={82}>{sw('vcf_mode')}</C>
-        <C left={460} top={77}>{kn('vcf_cutoff')}</C>
-        <C left={527} top={77}>{kn('vcf_resonance')}</C>
-        <C left={460} top={172}>{kn('vcf_decay')}</C>
-        <C left={527} top={172}>{kn('vcf_eg_amount')}</C>
+        <C left={540} top={107}>{sw('vcf_mode')}</C>
+        <C left={598} top={100}>{kn('vcf_cutoff')}</C>
+        <C left={685} top={100}>{kn('vcf_resonance')}</C>
+        <C left={598} top={224}>{kn('vcf_decay')}</C>
+        <C left={685} top={224}>{kn('vcf_eg_amount')}</C>
 
         {/* ── CLUSTER D: VCA / OUTPUT ──────────────────────────────── */}
-        <C left={615} top={82}>{sw('vca_eg')}</C>
-        <C left={660} top={77}>{kn('volume')}</C>
-        <C left={615} top={172}>{kn('noise_vcf_mod')}</C>
-        <C left={660} top={172}>{kn('vca_decay')}</C>
+        <C left={800} top={107}>{sw('vca_eg')}</C>
+        <C left={858} top={100}>{kn('volume')}</C>
+        <C left={800} top={224}>{kn('noise_vcf_mod')}</C>
+        <C left={858} top={224}>{kn('vca_decay')}</C>
 
         {/* ── CLUSTER E: TRANSPORT ─────────────────────────────────── */}
         <div
           style={{
             position: 'absolute',
-            left: 50,
-            top: 255,
+            left: 65,
+            top: 332,
             transform: 'translateX(-50%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 4,
+            gap: 5,
           }}
         >
           <button
@@ -181,8 +181,8 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
             onPointerUp={() => setTriggerActive(false)}
             onPointerLeave={() => setTriggerActive(false)}
             style={{
-              width: 26,
-              height: 26,
+              width: 34,
+              height: 34,
               borderRadius: '50%',
               background: triggerActive ? '#e07b39' : '#252525',
               border: `1.5px solid ${triggerActive ? '#e07b39' : '#555'}`,
@@ -190,21 +190,21 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
               boxShadow: '0 2px 6px rgba(0,0,0,0.7)',
             }}
           />
-          <span style={{ fontSize: 9, color: '#c0b898', letterSpacing: 0.3 }}>TRIGGER</span>
+          <span style={{ fontSize: 12, color: '#c0b898', letterSpacing: 0.3 }}>TRIGGER</span>
         </div>
 
-        <C left={145} top={285}>{kn('tempo')}</C>
+        <C left={189} top={371}>{kn('tempo')}</C>
 
-        <div style={{ position: 'absolute', left: 80, top: 352, transform: 'translateX(-50%)' }}>
+        <div style={{ position: 'absolute', left: 104, top: 458, transform: 'translateX(-50%)' }}>
           <button
             type="button"
             onClick={() => setRunStop(r => !r)}
             style={{
               background: runStop ? '#e07b39' : '#181818',
               border: `1.5px solid ${runStop ? '#e07b39' : '#484848'}`,
-              borderRadius: 7,
-              padding: '3px 7px',
-              fontSize: 9,
+              borderRadius: 9,
+              padding: '4px 9px',
+              fontSize: 12,
               color: runStop ? '#000' : '#7a7060',
               cursor: 'pointer',
               letterSpacing: 0.5,
@@ -215,7 +215,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
           </button>
         </div>
 
-        <div style={{ position: 'absolute', left: 175, top: 352, transform: 'translateX(-50%)' }}>
+        <div style={{ position: 'absolute', left: 228, top: 458, transform: 'translateX(-50%)' }}>
           <button
             type="button"
             onPointerDown={() => setAdvanceActive(true)}
@@ -224,9 +224,9 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
             style={{
               background: advanceActive ? '#e07b39' : '#181818',
               border: `1.5px solid ${advanceActive ? '#e07b39' : '#484848'}`,
-              borderRadius: 7,
-              padding: '3px 7px',
-              fontSize: 9,
+              borderRadius: 9,
+              padding: '4px 9px',
+              fontSize: 12,
               color: advanceActive ? '#000' : '#7a7060',
               cursor: 'pointer',
               letterSpacing: 0.5,
@@ -238,15 +238,15 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         </div>
 
         {/* ── CLUSTER F: SEQUENCER ─────────────────────────────────── */}
-        {[265, 340, 415, 491, 566, 641, 716, 792].map((x, i) => (
+        {[345, 442, 540, 638, 736, 833, 931, 1030].map((x, i) => (
           <div key={i}>
             <div
               style={{
                 position: 'absolute',
                 left: x,
-                top: 230,
+                top: 299,
                 transform: 'translateX(-50%)',
-                fontSize: 9,
+                fontSize: 12,
                 color: '#7a7060',
                 fontFamily: panelFont,
               }}
@@ -257,7 +257,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
               style={{
                 position: 'absolute',
                 left: x,
-                top: 262,
+                top: 341,
                 transform: 'translateX(-50%)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -269,17 +269,17 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
                 label="PCH"
                 value={values[`seq_${i + 1}_pitch`] ?? 5}
                 onChange={handleChange}
-                size={26}
+                size={34}
               />
             </div>
             <div
               style={{
                 position: 'absolute',
                 left: x,
-                top: 298,
+                top: 387,
                 transform: 'translate(-50%, -50%)',
-                width: 9,
-                height: 9,
+                width: 12,
+                height: 12,
                 borderRadius: '50%',
                 background: '#1a1a1a',
                 border: '1px solid #3a3a3a',
@@ -289,7 +289,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
               style={{
                 position: 'absolute',
                 left: x,
-                top: 330,
+                top: 429,
                 transform: 'translateX(-50%)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -301,7 +301,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
                 label="VEL"
                 value={values[`seq_${i + 1}_vel`] ?? 5}
                 onChange={handleChange}
-                size={26}
+                size={34}
               />
             </div>
           </div>
@@ -311,10 +311,10 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
         <div
           style={{
             position: 'absolute',
-            left: 906,
-            top: 26,
+            left: 1178,
+            top: 34,
             transform: 'translateX(-50%)',
-            fontSize: 8,
+            fontSize: 10,
             color: '#6a6050',
             letterSpacing: 1,
             fontFamily: panelFont,
@@ -330,7 +330,7 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
           const cableColor = connected
             ? (CABLE_COLORS.find(c => c.id === connected.color)?.hex ?? '#e07b39')
             : null
-          const stripLeft = 840 + JACK_COLS[point.col - 1]
+          const stripLeft = 1092 + JACK_COLS[point.col - 1]
           const top = JACK_ROWS[point.row - 1]
 
           return (
@@ -344,13 +344,13 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 2,
+                gap: 3,
               }}
             >
               <div
                 style={{
-                  width: 14,
-                  height: 14,
+                  width: 18,
+                  height: 18,
                   borderRadius: '50%',
                   background: '#0b0b0b',
                   border: `2px solid ${point.direction === 'out' ? '#b09048' : '#484848'}`,
@@ -365,8 +365,8 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 6,
-                    height: 6,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
                     background: cableColor ?? '#070707',
                   }}
@@ -374,13 +374,13 @@ export function DFAMPanel({ values, onChange, connections, onConnectionsChange: 
               </div>
               <div
                 style={{
-                  fontSize: 7,
+                  fontSize: 9,
                   color: '#6a6050',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
                   lineHeight: 1.2,
                   fontFamily: panelFont,
-                  maxWidth: 40,
+                  maxWidth: 52,
                 }}
               >
                 {JACK_LABEL_OVERRIDES[point.id] ?? point.label}
