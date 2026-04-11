@@ -57,7 +57,7 @@ model VerificationToken {
 model Patch {
   id            String            @id @default(cuid())
   name          String
-  device        String            @default("DFAM")
+  devices       String[]          @default([])
   description   String?
   tags          String[]
   isPublic      Boolean           @default(false)
@@ -76,6 +76,7 @@ model KnobSetting {
   id      String @id @default(cuid())
   patch   Patch  @relation(fields: [patchId], references: [id], onDelete: Cascade)
   patchId String
+  device  String @default("DFAM")
   knobId  String
   value   Float
 }
